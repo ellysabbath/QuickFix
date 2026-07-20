@@ -1,0 +1,151 @@
+@import "tailwindcss";
+/* Registration Animations */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+/* Form Transitions */
+.fade-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #F98012;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e6730f;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #F98012;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+/* Custom scrollbar for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-moodle-orange);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e6730f;
+}
+
+@theme {
+  --color-moodle-blue: #194866;
+  --color-moodle-orange: #F98012;
+  --color-moodle-gray: #f5f5f5;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn-arrow {
+    @apply inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg transition-colors;
+    background-color: var(--color-moodle-orange);
+  }
+  .btn-arrow:hover {
+    background-color: #e6730f;
+  }
+  
+  .brand-title {
+    @apply text-4xl md:text-5xl font-bold text-gray-900;
+  }
+  
+  .brand-subtitle {
+    @apply text-sm font-semibold uppercase tracking-wider;
+    color: var(--color-moodle-orange);
+  }
+  
+  .brand-header {
+    @apply text-3xl md:text-4xl font-bold text-gray-900;
+  }
+  
+  .text-moodle-blue {
+    color: var(--color-moodle-blue);
+  }
+  
+  .bg-moodle-blue {
+    background-color: var(--color-moodle-blue);
+  }
+  
+  .hover\:bg-moodle-blue-dark:hover {
+    background-color: #0f3452;
+  }
+  
+  .border-moodle-blue {
+    border-color: var(--color-moodle-blue);
+  }
+}
