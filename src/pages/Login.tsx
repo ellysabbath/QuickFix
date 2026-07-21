@@ -1,19 +1,25 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// pages/LoginScreen.tsx
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Phone,
-  ChevronDown,
+  ArrowLeft,
   ArrowRight,
-  UserPlus,
-  Search,
+  ChevronDown,
+  Check,
   X,
-  CheckCircle,
+  Search,
+  Phone,
+  LogIn,
+  UserPlus,
   AlertCircle,
+  CheckCircle,
   Loader,
-  Wifi,
-  WifiOff,
-  Globe
+  Info,
+  User,
+  Shield
 } from 'lucide-react';
+import { useUser } from '../context/UserContext';
+import loginApi from '../lib/api/loginApi';
 
 // Country data
 interface Country {
@@ -24,37 +30,37 @@ interface Country {
 }
 
 const countries: Country[] = [
-  { code: '+1', name: 'United States', flag: '🇺🇸', dialCode: '+1' },
-  { code: '+44', name: 'United Kingdom', flag: '🇬🇧', dialCode: '+44' },
-  { code: '+91', name: 'India', flag: '🇮🇳', dialCode: '+91' },
-  { code: '+61', name: 'Australia', flag: '🇦🇺', dialCode: '+61' },
-  { code: '+255', name: 'Tanzania', flag: '🇹🇿', dialCode: '+255' },
-  { code: '+254', name: 'Kenya', flag: '🇰🇪', dialCode: '+254' },
-  { code: '+256', name: 'Uganda', flag: '🇺🇬', dialCode: '+256' },
-  { code: '+250', name: 'Rwanda', flag: '🇷🇼', dialCode: '+250' },
-  { code: '+234', name: 'Nigeria', flag: '🇳🇬', dialCode: '+234' },
-  { code: '+27', name: 'South Africa', flag: '🇿🇦', dialCode: '+27' },
-  { code: '+20', name: 'Egypt', flag: '🇪🇬', dialCode: '+20' },
-  { code: '+966', name: 'Saudi Arabia', flag: '🇸🇦', dialCode: '+966' },
-  { code: '+971', name: 'UAE', flag: '🇦🇪', dialCode: '+971' },
-  { code: '+49', name: 'Germany', flag: '🇩🇪', dialCode: '+49' },
-  { code: '+33', name: 'France', flag: '🇫🇷', dialCode: '+33' },
-  { code: '+81', name: 'Japan', flag: '🇯🇵', dialCode: '+81' },
-  { code: '+86', name: 'China', flag: '🇨🇳', dialCode: '+86' },
-  { code: '+55', name: 'Brazil', flag: '🇧🇷', dialCode: '+55' },
-  { code: '+52', name: 'Mexico', flag: '🇲🇽', dialCode: '+52' },
-  { code: '+39', name: 'Italy', flag: '🇮🇹', dialCode: '+39' },
-  { code: '+34', name: 'Spain', flag: '🇪🇸', dialCode: '+34' },
-  { code: '+82', name: 'South Korea', flag: '🇰🇷', dialCode: '+82' },
-  { code: '+7', name: 'Russia', flag: '🇷🇺', dialCode: '+7' },
-  { code: '+62', name: 'Indonesia', flag: '🇮🇩', dialCode: '+62' },
-  { code: '+63', name: 'Philippines', flag: '🇵🇭', dialCode: '+63' },
+  { code: '+1', name: 'United States', flag: 'US', dialCode: '+1' },
+  { code: '+44', name: 'United Kingdom', flag: 'UK', dialCode: '+44' },
+  { code: '+91', name: 'India', flag: 'IN', dialCode: '+91' },
+  { code: '+61', name: 'Australia', flag: 'AU', dialCode: '+61' },
+  { code: '+255', name: 'Tanzania', flag: 'TZ', dialCode: '+255' },
+  { code: '+254', name: 'Kenya', flag: 'KE', dialCode: '+254' },
+  { code: '+256', name: 'Uganda', flag: 'UG', dialCode: '+256' },
+  { code: '+250', name: 'Rwanda', flag: 'RW', dialCode: '+250' },
+  { code: '+234', name: 'Nigeria', flag: 'NG', dialCode: '+234' },
+  { code: '+27', name: 'South Africa', flag: 'ZA', dialCode: '+27' },
+  { code: '+20', name: 'Egypt', flag: 'EG', dialCode: '+20' },
+  { code: '+966', name: 'Saudi Arabia', flag: 'SA', dialCode: '+966' },
+  { code: '+971', name: 'UAE', flag: 'AE', dialCode: '+971' },
+  { code: '+49', name: 'Germany', flag: 'DE', dialCode: '+49' },
+  { code: '+33', name: 'France', flag: 'FR', dialCode: '+33' },
+  { code: '+81', name: 'Japan', flag: 'JP', dialCode: '+81' },
+  { code: '+86', name: 'China', flag: 'CN', dialCode: '+86' },
+  { code: '+55', name: 'Brazil', flag: 'BR', dialCode: '+55' },
+  { code: '+52', name: 'Mexico', flag: 'MX', dialCode: '+52' },
+  { code: '+39', name: 'Italy', flag: 'IT', dialCode: '+39' },
+  { code: '+34', name: 'Spain', flag: 'ES', dialCode: '+34' },
+  { code: '+82', name: 'South Korea', flag: 'KR', dialCode: '+82' },
+  { code: '+7', name: 'Russia', flag: 'RU', dialCode: '+7' },
+  { code: '+62', name: 'Indonesia', flag: 'ID', dialCode: '+62' },
+  { code: '+63', name: 'Philippines', flag: 'PH', dialCode: '+63' },
 ];
 
 const LoginScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { login, isAuthenticated, isLoading: authLoading } = useUser();
   
-  // State
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -62,9 +68,22 @@ const LoginScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [checkingPhone, setCheckingPhone] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
-  // Format phone number
-  const formatPhoneNumber = useCallback((text: string): string => {
+  // Check if user is already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    country.dialCode.includes(searchQuery)
+  );
+
+  const formatPhoneNumber = (text: string): string => {
     const cleaned = text.replace(/\D/g, '');
     
     if (selectedCountry.dialCode === '+255') {
@@ -74,27 +93,22 @@ const LoginScreen: React.FC = () => {
     }
     
     return cleaned;
-  }, [selectedCountry]);
+  };
 
   const handlePhoneChange = (text: string): void => {
     const formatted = formatPhoneNumber(text);
     setPhoneNumber(formatted);
     setError('');
+    setSuccessMessage('');
+    setShowSuccess(false);
   };
 
-  // Filter countries
-  const filteredCountries = useMemo((): Country[] => {
-    return countries.filter(country =>
-      country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      country.dialCode.includes(searchQuery)
-    );
-  }, [searchQuery]);
-
-  // Handle login (no auth - just navigate)
   const handleLogin = async (): Promise<void> => {
     const cleanNumber = phoneNumber.replace(/\D/g, '');
     if (!cleanNumber || cleanNumber.length < 8) {
       setError('Please enter a valid phone number');
+      setSuccessMessage('');
+      setShowSuccess(false);
       return;
     }
 
@@ -102,21 +116,46 @@ const LoginScreen: React.FC = () => {
     
     setIsLoading(true);
     setError('');
+    setSuccessMessage('');
+    setShowSuccess(false);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setCheckingPhone(true);
+      const checkResponse = await loginApi.checkPhoneNumber(fullNumber);
       
-      // Mock successful login
-      const mockSuccess = true;
+      if (!checkResponse.valid) {
+        setError(checkResponse.message || 'Invalid phone number');
+        setIsLoading(false);
+        setCheckingPhone(false);
+        return;
+      }
       
-      if (mockSuccess) {
-        navigate('/dashboard');
+      if (!checkResponse.user_exists) {
+        setError('No account exists with this phone number. Would you like to create a new account?');
+        setIsLoading(false);
+        setCheckingPhone(false);
+        return;
+      }
+      
+      const loginResponse = await login(fullNumber);
+      
+      if (loginResponse) {
+        setSuccessMessage('Login successful!');
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate('/dashboard');
+        }, 1500);
       } else {
-        setError('Login failed. Please try again.');
+        setError('Unable to login. Please try again.');
+        setSuccessMessage('');
+        setShowSuccess(false);
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       setError(error.message || 'Failed to login. Please check your connection.');
+      setSuccessMessage('');
+      setShowSuccess(false);
     } finally {
       setIsLoading(false);
       setCheckingPhone(false);
@@ -132,13 +171,37 @@ const LoginScreen: React.FC = () => {
     setModalVisible(false);
     setSearchQuery('');
     setPhoneNumber('');
+    setError('');
+    setSuccessMessage('');
+    setShowSuccess(false);
   };
+
+  const handleBack = (): void => {
+    navigate('/');
+  };
+
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-cyan-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-12 pb-4 border-b border-gray-100">
-        <div className="w-8" />
+        <button 
+          onClick={handleBack}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6 text-black" />
+        </button>
         <h1 className="text-3xl font-bold text-black tracking-wide">Fix</h1>
         <div className="w-8" />
       </div>
@@ -157,11 +220,21 @@ const LoginScreen: React.FC = () => {
           Please enter your phone number to continue
         </p>
 
-        {/* Error Message */}
+        {/* Error Message - Danger Text */}
         {error && (
           <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* Success Message - With Circled Tick */}
+        {showSuccess && successMessage && (
+          <div className="w-full mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+            <p className="text-sm text-green-600">{successMessage}</p>
           </div>
         )}
 
@@ -171,7 +244,7 @@ const LoginScreen: React.FC = () => {
             onClick={() => setModalVisible(true)}
             className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-r border-gray-200 hover:bg-gray-100 transition-colors"
           >
-            <span className="text-xl">{selectedCountry.flag}</span>
+            <span className="text-lg font-bold">{selectedCountry.flag}</span>
             <span className="text-sm font-semibold text-black">{selectedCountry.dialCode}</span>
             <ChevronDown className="w-4 h-4 text-black" />
           </button>
@@ -269,13 +342,13 @@ const LoginScreen: React.FC = () => {
                   className="flex items-center gap-3 w-full px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
                   onClick={() => selectCountry(country)}
                 >
-                  <span className="text-3xl">{country.flag}</span>
+                  <span className="text-2xl font-bold">{country.flag}</span>
                   <div className="flex-1 text-left">
                     <p className="text-base font-medium text-black">{country.name}</p>
                     <p className="text-sm text-gray-500">{country.dialCode}</p>
                   </div>
                   {selectedCountry.dialCode === country.dialCode && selectedCountry.name === country.name && (
-                    <CheckCircle className="w-6 h-6 text-black" />
+                    <Check className="w-6 h-6 text-black" />
                   )}
                 </button>
               ))}
@@ -284,7 +357,7 @@ const LoginScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Add animation keyframes */}
+      {/* Animation keyframes */}
       <style>{`
         @keyframes slide-up {
           from {

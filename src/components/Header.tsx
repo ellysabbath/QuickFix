@@ -160,7 +160,7 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn = false }) => {
             {/* Menu Footer */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                © {new Date().getFullYear()} Lean Digitally Tanzania
+                © {new Date().getFullYear()} Fundi Fasta Tanzania
               </p>
               <div className="flex justify-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                 <Link to="/privacy" onClick={() => setIsMobileMenuOpen(false)}>Privacy</Link>

@@ -5,7 +5,7 @@ const Footer: React.FC = () => {
 
   const footerSections = [
     {
-      title: 'Lean Digitally',
+      title: 'Fundi Fasta',
       links: [
         { label: 'About Us', href: '/about' },
         { label: 'Our Vision', href: '/our-visions' },
@@ -80,7 +80,7 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center space-x-6">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-white">Lean Digitally</span>
+              <span className="text-xl font-bold text-white">Fundi Fasta</span>
               <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">TZ</span>
             </div>
             <p className="text-sm text-gray-400 hidden md:block">
@@ -137,7 +137,7 @@ const Footer: React.FC = () => {
             <a href="/trademarks" className="hover:text-gray-300 transition-colors">Trademark Policy</a>
           </div>
           <span className="text-gray-500">
-            © {currentYear} Lean Digitally Tanzania. All rights reserved.
+            © {currentYear} Fundi Fasta Tanzania. All rights reserved.
           </span>
         </div>
       </div>

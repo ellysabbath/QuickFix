@@ -1,25 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// pages/RegisterScreen.tsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  User,
-  Mail,
-  Phone,
-  Lock,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  ArrowRight,
   ArrowLeft,
-  AlertCircle,
-  Loader,
+  ArrowRight,
   ChevronDown,
-  Search,
-  X,
   Check,
-  LogIn,
+  X,
+  Search,
+  Phone,
+  Mail,
   Send,
-  Info
+  LogIn,
+  Info,
+  Loader,
+  AlertCircle,
+  CheckCircle,
+  User,
+  Shield
 } from 'lucide-react';
+import registerApi from '../lib/api/registerApi';
 
 // Country data
 interface Country {
@@ -31,52 +31,54 @@ interface Country {
 }
 
 const countries: Country[] = [
-  { code: '+1', name: 'United States', flag: '🇺🇸', dialCode: '+1', pattern: '### ### ####' },
-  { code: '+44', name: 'United Kingdom', flag: '🇬🇧', dialCode: '+44', pattern: '#### ######' },
-  { code: '+91', name: 'India', flag: '🇮🇳', dialCode: '+91', pattern: '##### #####' },
-  { code: '+61', name: 'Australia', flag: '🇦🇺', dialCode: '+61', pattern: '# #### ####' },
-  { code: '+255', name: 'Tanzania', flag: '🇹🇿', dialCode: '+255', pattern: '## ### ####' },
-  { code: '+254', name: 'Kenya', flag: '🇰🇪', dialCode: '+254', pattern: '### ### ###' },
-  { code: '+256', name: 'Uganda', flag: '🇺🇬', dialCode: '+256', pattern: '### ### ###' },
-  { code: '+250', name: 'Rwanda', flag: '🇷🇼', dialCode: '+250', pattern: '### ### ###' },
-  { code: '+234', name: 'Nigeria', flag: '🇳🇬', dialCode: '+234', pattern: '### ### ####' },
-  { code: '+27', name: 'South Africa', flag: '🇿🇦', dialCode: '+27', pattern: '## ### ####' },
-  { code: '+20', name: 'Egypt', flag: '🇪🇬', dialCode: '+20', pattern: '### ### ####' },
-  { code: '+966', name: 'Saudi Arabia', flag: '🇸🇦', dialCode: '+966', pattern: '# #### ####' },
-  { code: '+971', name: 'UAE', flag: '🇦🇪', dialCode: '+971', pattern: '# ### ####' },
-  { code: '+49', name: 'Germany', flag: '🇩🇪', dialCode: '+49', pattern: '#### ######' },
-  { code: '+33', name: 'France', flag: '🇫🇷', dialCode: '+33', pattern: '# ## ## ## ##' },
-  { code: '+81', name: 'Japan', flag: '🇯🇵', dialCode: '+81', pattern: '## #### ####' },
-  { code: '+86', name: 'China', flag: '🇨🇳', dialCode: '+86', pattern: '### #### ####' },
-  { code: '+55', name: 'Brazil', flag: '🇧🇷', dialCode: '+55', pattern: '## ##### ####' },
-  { code: '+52', name: 'Mexico', flag: '🇲🇽', dialCode: '+52', pattern: '## ## ## ####' },
-  { code: '+39', name: 'Italy', flag: '🇮🇹', dialCode: '+39', pattern: '## ### ####' },
-  { code: '+34', name: 'Spain', flag: '🇪🇸', dialCode: '+34', pattern: '## ### ## ##' },
-  { code: '+82', name: 'South Korea', flag: '🇰🇷', dialCode: '+82', pattern: '## ### ####' },
-  { code: '+7', name: 'Russia', flag: '🇷🇺', dialCode: '+7', pattern: '### ### ## ##' },
-  { code: '+62', name: 'Indonesia', flag: '🇮🇩', dialCode: '+62', pattern: '## ### ####' },
-  { code: '+63', name: 'Philippines', flag: '🇵🇭', dialCode: '+63', pattern: '### ### ####' },
+  { code: '+1', name: 'United States', flag: 'US', dialCode: '+1', pattern: '### ### ####' },
+  { code: '+44', name: 'United Kingdom', flag: 'UK', dialCode: '+44', pattern: '#### ######' },
+  { code: '+91', name: 'India', flag: 'IN', dialCode: '+91', pattern: '##### #####' },
+  { code: '+61', name: 'Australia', flag: 'AU', dialCode: '+61', pattern: '# #### ####' },
+  { code: '+255', name: 'Tanzania', flag: 'TZ', dialCode: '+255', pattern: '## ### ####' },
+  { code: '+254', name: 'Kenya', flag: 'KE', dialCode: '+254', pattern: '### ### ###' },
+  { code: '+256', name: 'Uganda', flag: 'UG', dialCode: '+256', pattern: '### ### ###' },
+  { code: '+250', name: 'Rwanda', flag: 'RW', dialCode: '+250', pattern: '### ### ###' },
+  { code: '+234', name: 'Nigeria', flag: 'NG', dialCode: '+234', pattern: '### ### ####' },
+  { code: '+27', name: 'South Africa', flag: 'ZA', dialCode: '+27', pattern: '## ### ####' },
+  { code: '+20', name: 'Egypt', flag: 'EG', dialCode: '+20', pattern: '### ### ####' },
+  { code: '+966', name: 'Saudi Arabia', flag: 'SA', dialCode: '+966', pattern: '# #### ####' },
+  { code: '+971', name: 'UAE', flag: 'AE', dialCode: '+971', pattern: '# ### ####' },
+  { code: '+49', name: 'Germany', flag: 'DE', dialCode: '+49', pattern: '#### ######' },
+  { code: '+33', name: 'France', flag: 'FR', dialCode: '+33', pattern: '# ## ## ## ##' },
+  { code: '+81', name: 'Japan', flag: 'JP', dialCode: '+81', pattern: '## #### ####' },
+  { code: '+86', name: 'China', flag: 'CN', dialCode: '+86', pattern: '### #### ####' },
+  { code: '+55', name: 'Brazil', flag: 'BR', dialCode: '+55', pattern: '## ##### ####' },
+  { code: '+52', name: 'Mexico', flag: 'MX', dialCode: '+52', pattern: '## ## ## ####' },
+  { code: '+39', name: 'Italy', flag: 'IT', dialCode: '+39', pattern: '## ### ####' },
+  { code: '+34', name: 'Spain', flag: 'ES', dialCode: '+34', pattern: '## ### ## ##' },
+  { code: '+82', name: 'South Korea', flag: 'KR', dialCode: '+82', pattern: '## ### ####' },
+  { code: '+7', name: 'Russia', flag: 'RU', dialCode: '+7', pattern: '### ### ## ##' },
+  { code: '+62', name: 'Indonesia', flag: 'ID', dialCode: '+62', pattern: '## ### ####' },
+  { code: '+63', name: 'Philippines', flag: 'PH', dialCode: '+63', pattern: '### ### ####' },
 ];
 
 const RegisterScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [showEmailInput, setShowEmailInput] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
+  const [showEmailInput, setShowEmailInput] = useState<boolean>(false);
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [checkingPhone, setCheckingPhone] = useState(false);
-  const [error, setError] = useState('');
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [checkingPhone, setCheckingPhone] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
   const filteredCountries = countries.filter(country =>
     country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     country.dialCode.includes(searchQuery)
   );
 
-  const formatPhoneNumber = (text: string) => {
+  const formatPhoneNumber = (text: string): string => {
     const cleaned = text.replace(/\D/g, '');
     
     if (selectedCountry.pattern) {
@@ -99,97 +101,121 @@ const RegisterScreen: React.FC = () => {
     return cleaned;
   };
 
-  const handlePhoneChange = (text: string) => {
+  const handlePhoneChange = (text: string): void => {
     const formatted = formatPhoneNumber(text);
     setPhoneNumber(formatted);
     setError('');
+    setSuccessMessage('');
+    setShowSuccess(false);
   };
 
-  const handleContinue = async () => {
+  const handleContinue = async (): Promise<void> => {
     const cleanNumber = phoneNumber.replace(/\D/g, '');
     if (cleanNumber.length < 8) {
       setError('Please enter a valid phone number');
+      setSuccessMessage('');
+      setShowSuccess(false);
       return;
     }
     
     if (!agreeToTerms) {
       setError('Please agree to the terms and conditions');
+      setSuccessMessage('');
+      setShowSuccess(false);
       return;
     }
     
     setCheckingPhone(true);
     setError('');
+    setSuccessMessage('');
+    setShowSuccess(false);
     const fullNumber = `${selectedCountry.dialCode}${cleanNumber}`;
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await registerApi.checkPhoneNumber(fullNumber);
       
-      // Mock response - check if phone exists
-      const mockUserExists = false; // Change to true to test existing user flow
-      
-      if (mockUserExists) {
-        // Show alert dialog (using window.confirm in browser)
-        const confirm = window.confirm(
-          'An account with this phone number already exists. Would you like to login instead?'
-        );
-        if (confirm) {
-          navigate('/login');
+      if (response.valid) {
+        if (response.user_exists) {
+          // Show confirmation dialog using custom modal approach
+          setError('An account with this phone number already exists. Please login instead.');
+          setSuccessMessage('');
+          setShowSuccess(false);
+        } else {
+          setShowEmailInput(true);
+          setSuccessMessage('Phone number verified successfully!');
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 3000);
         }
       } else {
-        setShowEmailInput(true);
+        setError(response.message || 'Please enter a valid phone number');
+        setSuccessMessage('');
+        setShowSuccess(false);
       }
     } catch (error) {
       setError('Failed to verify phone number. Please check your connection.');
+      setSuccessMessage('');
+      setShowSuccess(false);
     } finally {
       setCheckingPhone(false);
     }
   };
 
-  const handleEmailSubmit = async () => {
+  const handleEmailSubmit = async (): Promise<void> => {
     if (!email || !email.includes('@')) {
       setError('Please enter a valid email address');
+      setSuccessMessage('');
+      setShowSuccess(false);
       return;
     }
     
     setLoading(true);
     setError('');
+    setSuccessMessage('');
+    setShowSuccess(false);
     const cleanNumber = phoneNumber.replace(/\D/g, '');
     const fullNumber = `${selectedCountry.dialCode}${cleanNumber}`;
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await registerApi.sendOTP(fullNumber, email);
       
-      // Mock successful response
-      const mockSuccess = true;
-      
-      if (mockSuccess) {
-        navigate('/verify-otp', { 
-          state: { 
-            phoneNumber: fullNumber,
-            email: email,
-            fromRegistration: true
-          }
-        });
+      if (response.success) {
+        setSuccessMessage('OTP sent successfully!');
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate('/verify-otp', { 
+            state: { 
+              phoneNumber: fullNumber,
+              email: email,
+              fromRegistration: true
+            }
+          });
+        }, 1500);
       } else {
-        setError('Failed to send verification code');
+        setError(response.message || 'Failed to send verification code');
+        setSuccessMessage('');
+        setShowSuccess(false);
       }
     } catch (error) {
       setError('Failed to send verification code. Please check your connection.');
+      setSuccessMessage('');
+      setShowSuccess(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const selectCountry = (country: Country) => {
+  const selectCountry = (country: Country): void => {
     setSelectedCountry(country);
     setModalVisible(false);
     setSearchQuery('');
     setPhoneNumber('');
+    setError('');
+    setSuccessMessage('');
+    setShowSuccess(false);
   };
 
-  const getCleanNumber = () => {
+  const getCleanNumber = (): string => {
     return phoneNumber.replace(/\D/g, '');
   };
 
@@ -226,11 +252,21 @@ const RegisterScreen: React.FC = () => {
             : "Enter your email address to verify"}
         </p>
 
-        {/* Error Message */}
+        {/* Error Message - Danger Text */}
         {error && (
           <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* Success Message - With Circled Tick */}
+        {showSuccess && successMessage && (
+          <div className="w-full mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+            <p className="text-sm text-green-600">{successMessage}</p>
           </div>
         )}
 
@@ -242,7 +278,7 @@ const RegisterScreen: React.FC = () => {
                 onClick={() => setModalVisible(true)}
                 className="flex items-center gap-2 px-3 py-3 bg-gray-50 border-r border-gray-300 hover:bg-gray-100 transition-colors"
               >
-                <span className="text-lg">{selectedCountry.flag}</span>
+                <span className="text-lg font-bold">{selectedCountry.flag}</span>
                 <span className="text-sm font-medium text-black">{selectedCountry.dialCode}</span>
                 <ChevronDown className="w-4 h-4 text-black" />
               </button>
@@ -396,13 +432,13 @@ const RegisterScreen: React.FC = () => {
                   className="flex items-center gap-3 w-full px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
                   onClick={() => selectCountry(country)}
                 >
-                  <span className="text-3xl">{country.flag}</span>
+                  <span className="text-2xl font-bold">{country.flag}</span>
                   <div className="flex-1 text-left">
                     <p className="text-base font-medium text-black">{country.name}</p>
                     <p className="text-sm text-gray-500">{country.dialCode}</p>
                   </div>
                   {selectedCountry.dialCode === country.dialCode && selectedCountry.name === country.name && (
-                    <CheckCircle className="w-6 h-6 text-black" />
+                    <Check className="w-6 h-6 text-black" />
                   )}
                 </button>
               ))}
@@ -411,7 +447,7 @@ const RegisterScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Add animation keyframes */}
+      {/* Animation keyframes */}
       <style>{`
         @keyframes slide-up {
           from {

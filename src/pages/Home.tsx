@@ -115,7 +115,7 @@ const WelcomeScreen: React.FC = () => {
           </h2>
           <div className="flex items-center justify-center gap-2 bg-cyan-50 px-4 py-2 rounded-full inline-block">
             <Tag className="w-4 h-4 text-cyan-500" />
-            <span className="text-gray-600 text-sm font-medium">Starting from just $49</span>
+            <span className="text-gray-600 text-sm font-medium"></span>
           </div>
         </div>
 
