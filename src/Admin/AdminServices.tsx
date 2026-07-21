@@ -1,5 +1,47 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// src/pages/admin/RepairServicesManagement.tsx
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import Sidebar from '../components/Sidebar';
+import {
+  ArrowLeft,
+  RefreshCw,
+  Search,
+  X,
+  Eye,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Phone,
+  Mail,
+  User,
+  Building2,
+  Calendar,
+  Loader2,
+  Plus,
+  Trash2,
+  Edit2,
+  Power,
+  PowerOff,
+  Check,
+  XCircle,
+  Users,
+  Wrench,
+  DollarSign,
+  FileText,
+  Tag,
+  Filter,
+ 
+  Clock as ClockIcon,
+ 
+} from 'lucide-react';
+
+// API Configuration
+const API_BASE_URL = 'http://127.0.0.1:8000';
+const REPAIR_SERVICES_ENDPOINT = `${API_BASE_URL}/api/repair-services/`;
+const WORKSHOPS_ENDPOINT = `${API_BASE_URL}/api/auto-workshops/`;
 
 // Types
 interface Workshop {
@@ -33,310 +75,186 @@ interface ServiceFormData {
   is_service_active: boolean;
 }
 
-// Mock data
-const mockWorkshops: Workshop[] = [
-  {
-    id: 1,
-    workshop_name: 'AutoCare Premium Services',
-    workshop_email: 'info@autocare.co.tz',
-    workshop_phone: '+255 765 432 100',
-    workshop_address: 'Plot 45, Kimweri Street, Mbezi Beach',
-    workshop_city: 'Dar es Salaam',
-    is_workshop_active: true,
-  },
-  {
-    id: 2,
-    workshop_name: 'Elite Auto Garage',
-    workshop_email: 'info@eliteauto.co.tz',
-    workshop_phone: '+255 765 432 101',
-    workshop_address: 'Block 12, Nyerere Road, Temeke',
-    workshop_city: 'Dar es Salaam',
-    is_workshop_active: true,
-  },
-  {
-    id: 3,
-    workshop_name: 'QuickFix Motors',
-    workshop_email: 'info@quickfix.co.tz',
-    workshop_phone: '+255 765 432 102',
-    workshop_address: 'Plot 78, Mandela Road, Ubungo',
-    workshop_city: 'Dar es Salaam',
-    is_workshop_active: true,
-  },
-];
-
-const mockServices: RepairService[] = [
-  {
-    id: 1,
-    service_title: 'Engine Diagnostics',
-    service_description: 'Complete engine diagnostic and performance check with computer analysis',
-    service_category: 'Engine',
-    service_base_price: '150000',
-    workshop: 1,
-    workshop_name: 'AutoCare Premium Services',
-    is_service_active: true,
-    service_created: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    service_title: 'Brake System Repair',
-    service_description: 'Full brake system inspection, pad replacement, and rotor resurfacing',
-    service_category: 'Brakes',
-    service_base_price: '80000',
-    workshop: 2,
-    workshop_name: 'Elite Auto Garage',
-    is_service_active: true,
-    service_created: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    service_title: 'Oil Change Service',
-    service_description: 'Professional oil change with filter replacement and fluid check',
-    service_category: 'Maintenance',
-    service_base_price: '45000',
-    workshop: null,
-    workshop_name: 'All Workshops',
-    is_service_active: true,
-    service_created: new Date().toISOString(),
-  },
-  {
-    id: 4,
-    service_title: 'Transmission Service',
-    service_description: 'Transmission fluid change, filter replacement, and system inspection',
-    service_category: 'Transmission',
-    service_base_price: '200000',
-    workshop: 3,
-    workshop_name: 'QuickFix Motors',
-    is_service_active: false,
-    service_created: new Date().toISOString(),
-  },
-];
-
-// Success Modal
-const SuccessModal: React.FC<{
-  visible: boolean;
+// Confirmation Modal Component
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  type: 'success' | 'error' | 'confirm' | 'info';
+  title: string;
   message: string;
-  onClose: () => void;
-}> = ({ visible, message, onClose }) => {
-  useEffect(() => {
-    if (visible) {
-      const timer = setTimeout(() => onClose(), 2500);
-      return () => clearTimeout(timer);
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  details?: { label: string; value: string }[];
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  isOpen,
+  type,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  details
+}) => {
+  if (!isOpen) return null;
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success':
+        return <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-green-500" />;
+      case 'error':
+        return <AlertTriangle className="w-14 h-14 sm:w-16 sm:h-16 text-red-500" />;
+      case 'confirm':
+        return <AlertTriangle className="w-14 h-14 sm:w-16 sm:h-16 text-yellow-500" />;
+      case 'info':
+        return <Info className="w-14 h-14 sm:w-16 sm:h-16 text-cyan-500" />;
+      default:
+        return <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-cyan-500" />;
     }
-  }, [visible]);
+  };
 
-  if (!visible) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-green-500/30">
-          <span className="text-white text-5xl font-light">✓</span>
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Success!</h3>
-        <p className="text-gray-600 dark:text-gray-400">{message}</p>
-      </div>
-    </div>
-  );
-};
-
-// Confirmation Modal
-const ConfirmationModal: React.FC<{
-  visible: boolean;
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isDestructive?: boolean;
-}> = ({ visible, message, onConfirm, onCancel, isDestructive = false }) => {
-  if (!visible) return null;
+  const getButtonColors = () => {
+    switch (type) {
+      case 'success':
+        return 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-green-500/30';
+      case 'error':
+        return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-red-500/30';
+      case 'confirm':
+        return 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 shadow-yellow-500/30';
+      case 'info':
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 shadow-cyan-500/30';
+      default:
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 shadow-cyan-500/30';
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl max-w-md w-full p-8 shadow-2xl">
-        <div className="text-center mb-6">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
-            isDestructive 
-              ? 'bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30' 
-              : 'bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30'
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 sm:p-8 w-full max-w-md text-center shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-center mb-4">
+          <div className={`p-3 rounded-full ${
+            type === 'success' ? 'bg-green-100 dark:bg-green-900/30' :
+            type === 'error' ? 'bg-red-100 dark:bg-red-900/30' :
+            type === 'confirm' ? 'bg-yellow-100 dark:bg-yellow-900/30' :
+            'bg-cyan-100 dark:bg-cyan-900/30'
           }`}>
-            <span className={`text-4xl font-bold ${isDestructive ? 'text-red-500' : 'text-cyan-500'}`}>
-              {isDestructive ? '!' : '?'}
-            </span>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {isDestructive ? 'Delete Service' : 'Confirm Action'}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{message}</p>
-        </div>
-
-        <div className="flex gap-3 mt-4">
-          <button
-            className="flex-1 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-2xl text-gray-700 dark:text-gray-300 font-semibold transition-all duration-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-          <button
-            className={`flex-1 py-3.5 rounded-2xl text-white font-semibold transition-all duration-200 shadow-lg ${
-              isDestructive 
-                ? 'bg-gradient-to-r from-red-500 to-red-600 hover:shadow-red-500/30' 
-                : 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:shadow-cyan-500/30'
-            }`}
-            onClick={onConfirm}
-          >
-            {isDestructive ? 'Delete' : 'Confirm'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Service Card Component
-const ServiceCard: React.FC<{
-  service: RepairService;
-  onEdit: () => void;
-  onDelete: () => void;
-  onToggleStatus: () => void;
-  onPress: () => void;
-}> = ({ service, onEdit, onDelete, onToggleStatus, onPress }) => {
-  const statusColor = service.is_service_active ? 'text-green-500' : 'text-red-500';
-  const statusBg = service.is_service_active ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30';
-  const statusText = service.is_service_active ? 'Active' : 'Inactive';
-
-  return (
-    <div 
-      className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer mb-4"
-      onClick={onPress}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className={`flex items-center gap-2 px-2.5 py-1 rounded-full ${statusBg}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${statusColor}`} />
-          <span className={`text-xs font-semibold ${statusColor}`}>{statusText}</span>
-        </div>
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleStatus(); }}
-          className={`text-sm font-medium ${service.is_service_active ? 'text-orange-500 hover:text-orange-600' : 'text-green-500 hover:text-green-600'} transition-colors`}
-        >
-          {service.is_service_active ? 'Deactivate' : 'Activate'}
-        </button>
-      </div>
-
-      {/* Service Info */}
-      <div className="flex items-center gap-4 mb-3">
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-cyan-500/20">
-          <span className="text-white text-xl font-bold">WS</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">
-            {service.service_title}
-          </h3>
-          <div className="flex items-center gap-2 flex-wrap mt-1">
-            {service.service_category && (
-              <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full font-medium">
-                {service.service_category}
-              </span>
-            )}
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {service.workshop_name || 'All Workshops'}
-            </span>
+            {getIcon()}
           </div>
         </div>
-      </div>
-
-      {/* Description */}
-      {service.service_description && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
-          {service.service_description}
+        
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {message}
         </p>
-      )}
 
-      {/* Price & Actions */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-        <div>
-          <p className="text-xs text-gray-400">Base Price</p>
-          <p className="text-lg font-bold text-green-500">
-            TZS {parseFloat(service.service_base_price).toLocaleString()}
-          </p>
+        {details && details.length > 0 && (
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4 text-left w-full">
+            {details.map((detail, index) => (
+              <div key={index} className="flex justify-between py-1 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                <span className="text-xs text-gray-500 dark:text-gray-400">{detail.label}</span>
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{detail.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <div className="flex gap-3">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="flex-1 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-semibold text-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400"
+            >
+              {cancelText}
+            </button>
+          )}
+          {onConfirm && (
+            <button
+              onClick={onConfirm}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()}`}
+            >
+              {confirmText}
+            </button>
+          )}
+          {!onConfirm && type === 'success' && (
+            <button
+              onClick={onCancel}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()}`}
+            >
+              OK
+            </button>
+          )}
         </div>
-        <div className="flex gap-2">
-          <button
-            className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          >
-            Edit
-          </button>
-          <button
-            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-
-      {/* Tap Hint */}
-      <div className="flex items-center justify-center gap-1 mt-3 pt-2 text-xs text-gray-400">
-        <span>View</span> Tap for details
       </div>
     </div>
   );
 };
 
-// Filter Modal
+// Filter Modal Component
 const FilterModal: React.FC<{
-  visible: boolean;
+  isOpen: boolean;
   onClose: () => void;
   workshops: Workshop[];
   selectedWorkshop: number | null;
   onSelectWorkshop: (id: number | null) => void;
   showInactive: boolean;
   onToggleShowInactive: (value: boolean) => void;
-}> = ({ visible, onClose, workshops, selectedWorkshop, onSelectWorkshop, showInactive, onToggleShowInactive }) => {
-  if (!visible) return null;
+}> = ({
+  isOpen,
+  onClose,
+  workshops,
+  selectedWorkshop,
+  onSelectWorkshop,
+  showInactive,
+  onToggleShowInactive
+}) => {
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Filter Services</h3>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center text-2xl">
-            ✕
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center p-4 animate-fade-in">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl animate-slide-up">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filter Services</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
+        <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)]">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Workshop</h4>
-          
           <button
-            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-              selectedWorkshop === null ? 'bg-cyan-50 dark:bg-cyan-900/20 border-2 border-cyan-500' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${
+              selectedWorkshop === null ? 'bg-cyan-50 dark:bg-cyan-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
             onClick={() => onSelectWorkshop(null)}
           >
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-              selectedWorkshop === null ? 'border-cyan-500 bg-cyan-500' : 'border-gray-300 dark:border-gray-600'
+              selectedWorkshop === null ? 'border-cyan-500 bg-cyan-500' : 'border-gray-300'
             }`}>
-              {selectedWorkshop === null && <span className="text-white text-xs">✓</span>}
+              {selectedWorkshop === null && <Check className="w-3 h-3 text-white" />}
             </div>
-            <span className="font-medium text-gray-900 dark:text-white">All Workshops</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">All Workshops</span>
           </button>
 
           {workshops.map((workshop) => (
             <button
               key={workshop.id}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-                selectedWorkshop === workshop.id ? 'bg-cyan-50 dark:bg-cyan-900/20 border-2 border-cyan-500' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${
+                selectedWorkshop === workshop.id ? 'bg-cyan-50 dark:bg-cyan-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
               onClick={() => onSelectWorkshop(workshop.id)}
             >
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                selectedWorkshop === workshop.id ? 'border-cyan-500 bg-cyan-500' : 'border-gray-300 dark:border-gray-600'
+                selectedWorkshop === workshop.id ? 'border-cyan-500 bg-cyan-500' : 'border-gray-300'
               }`}>
-                {selectedWorkshop === workshop.id && <span className="text-white text-xs">✓</span>}
+                {selectedWorkshop === workshop.id && <Check className="w-3 h-3 text-white" />}
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{workshop.workshop_name}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{workshop.workshop_name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{workshop.workshop_city || 'No city'}</p>
               </div>
             </button>
@@ -344,27 +262,27 @@ const FilterModal: React.FC<{
 
           <div className="h-px bg-gray-200 dark:bg-gray-700 my-4" />
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl">
+          <div className="flex items-center justify-between py-3">
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">Show Inactive Services</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Show Inactive Services</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Display deactivated services</p>
             </div>
             <button
-              className={`w-12 h-6 rounded-full transition-all duration-200 ${
+              className={`relative w-12 h-6 rounded-full transition-colors ${
                 showInactive ? 'bg-cyan-500' : 'bg-gray-300 dark:bg-gray-600'
               }`}
               onClick={() => onToggleShowInactive(!showInactive)}
             >
-              <div className={`w-5 h-5 rounded-full bg-white transition-all duration-200 ${
-                showInactive ? 'translate-x-6' : 'translate-x-0.5'
-              } mt-0.5`} />
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                showInactive ? 'right-1' : 'left-1'
+              }`} />
             </button>
           </div>
         </div>
 
-        <div className="p-5 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <button
-            className="w-full py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-2xl text-cyan-500 font-semibold transition-all duration-200"
+            className="w-full py-2.5 bg-gray-100 dark:bg-gray-800 text-cyan-600 dark:text-cyan-400 rounded-xl font-medium text-sm transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
             onClick={() => {
               onSelectWorkshop(null);
               onToggleShowInactive(false);
@@ -380,26 +298,17 @@ const FilterModal: React.FC<{
 
 // Service Detail Modal
 const ServiceDetailModal: React.FC<{
-  visible: boolean;
+  isOpen: boolean;
   service: RepairService | null;
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onToggleStatus: () => void;
-}> = ({ visible, service, onClose, onEdit, onDelete, onToggleStatus }) => {
-  useEffect(() => {
-    if (visible) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [visible]);
-
-  if (!visible || !service) return null;
+}> = ({ isOpen, service, onClose, onEdit, onDelete, onToggleStatus }) => {
+  if (!isOpen || !service) return null;
 
   const statusColor = service.is_service_active ? 'text-green-500' : 'text-red-500';
-  const statusBg = service.is_service_active ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20';
+  const statusBgColor = service.is_service_active ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30';
   const statusText = service.is_service_active ? 'Active' : 'Inactive';
   const createdDate = new Date(service.service_created).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -412,133 +321,125 @@ const ServiceDetailModal: React.FC<{
   });
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 p-5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-white text-xl font-bold">WS</span>
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl animate-scale-in">
+        <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <Wrench className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-white">Service Details</h3>
-            </div>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-2xl">
-              ✕
-            </button>
+            <h2 className="text-lg font-bold text-white">Service Details</h2>
           </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/20 transition-colors">
+            <X className="w-5 h-5 text-white" />
+          </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          {/* Status Banner */}
-          <div className={`flex items-center gap-3 p-3 rounded-xl ${statusBg} mb-4`}>
-            <span className={`w-2 h-2 rounded-full ${statusColor}`} />
-            <span className={`font-semibold ${statusColor}`}>{statusText}</span>
-            <div className="flex-1" />
+        <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <div className={`flex items-center justify-between p-3 rounded-xl ${statusBgColor} mb-4`}>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${service.is_service_active ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className={`text-sm font-semibold ${statusColor}`}>{statusText}</span>
+            </div>
             <button
               onClick={onToggleStatus}
-              className={`text-sm font-medium px-3 py-1 rounded-lg ${
-                service.is_service_active 
-                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200' 
-                  : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200'
-              } transition-colors`}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 text-white text-xs font-medium hover:bg-white/30 transition-colors"
             >
+              <Power className="w-3.5 h-3.5" />
               {service.is_service_active ? 'Deactivate' : 'Activate'}
             </button>
           </div>
 
-          {/* Title */}
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-cyan-500 font-bold">T</span>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Service Title</p>
-              <p className="text-base font-bold text-gray-900 dark:text-white">{service.service_title}</p>
-            </div>
-          </div>
-
-          {/* Category */}
-          {service.service_category && (
-            <div className="flex items-start gap-3 mb-4">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
-                <span className="text-cyan-500 font-bold">C</span>
+                <FileText className="w-4.5 h-4.5 text-cyan-600 dark:text-cyan-400" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Category</p>
-                <span className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-sm font-medium">
-                  {service.service_category}
-                </span>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Service Title</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{service.service_title}</p>
               </div>
             </div>
-          )}
 
-          {/* Price */}
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-cyan-500 font-bold">$</span>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Base Price</p>
-              <p className="text-xl font-bold text-green-500">
-                TZS {parseFloat(service.service_base_price).toLocaleString()}
-              </p>
-            </div>
-          </div>
+            {service.service_category && (
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
+                  <Tag className="w-4.5 h-4.5 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Category</p>
+                  <span className="inline-block px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-xs font-medium">
+                    {service.service_category}
+                  </span>
+                </div>
+              </div>
+            )}
 
-          {/* Workshop */}
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-cyan-500 font-bold">W</span>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Associated Workshop</p>
-              <p className="text-base font-medium text-gray-900 dark:text-white">
-                {service.workshop_name || 'All Workshops (Global Service)'}
-              </p>
-            </div>
-          </div>
-
-          {/* Description */}
-          {service.service_description && (
-            <div className="flex items-start gap-3 mb-4">
+            <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
-                <span className="text-cyan-500 font-bold">D</span>
+                <DollarSign className="w-4.5 h-4.5 text-cyan-600 dark:text-cyan-400" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Description</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {service.service_description}
+                <p className="text-xs text-gray-500 dark:text-gray-400">Base Price</p>
+                <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                  TZS {parseFloat(service.service_base_price).toLocaleString()}
                 </p>
               </div>
             </div>
-          )}
 
-          {/* Meta Info */}
-          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-500 dark:text-gray-400">
-              <span>Date:</span> {createdDate}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4.5 h-4.5 text-cyan-600 dark:text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Workshop</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {service.workshop_name || 'All Workshops (Global Service)'}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-500 dark:text-gray-400">
-              <span>Time:</span> {createdTime}
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-500 dark:text-gray-400">
-              <span>ID:</span> {service.id}
+
+            {service.service_description && (
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-4.5 h-4.5 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Description</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{service.service_description}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-500">
+                <Calendar className="w-3.5 h-3.5" />
+                {createdDate}
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-500">
+                <ClockIcon className="w-3.5 h-3.5" />
+                {createdTime}
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-500">
+                <Tag className="w-3.5 h-3.5" />
+                ID: {service.id}
+              </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-3 mt-4">
             <button
-              className="flex-1 py-3.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-2xl shadow-lg shadow-red-500/30 transition-all duration-200 flex items-center justify-center gap-2"
-              onClick={() => { onClose(); onDelete(); }}
+              onClick={onDelete}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium text-sm transition-colors"
             >
+              <Trash2 className="w-4 h-4" />
               Delete
             </button>
             <button
-              className="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-2xl shadow-lg shadow-cyan-500/30 transition-all duration-200 flex items-center justify-center gap-2"
-              onClick={() => { onClose(); onEdit(); }}
+              onClick={onEdit}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-medium text-sm transition-colors shadow-md shadow-cyan-500/30"
             >
+              <Edit2 className="w-4 h-4" />
               Edit
             </button>
           </div>
@@ -548,13 +449,109 @@ const ServiceDetailModal: React.FC<{
   );
 };
 
-const RepairServicesManagement: React.FC = () => {
+// Service Card Component
+const ServiceCard: React.FC<{
+  service: RepairService;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleStatus: () => void;
+  onPress: () => void;
+}> = ({ service, onEdit, onDelete, onToggleStatus, onPress }) => {
+  const statusColor = service.is_service_active ? 'text-green-500' : 'text-red-500';
+  const statusBgColor = service.is_service_active ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30';
+
+  return (
+    <div
+      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+      onClick={onPress}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${statusBgColor}`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${service.is_service_active ? 'bg-green-500' : 'bg-red-500'}`} />
+          <span className={`text-[10px] font-semibold ${statusColor}`}>{service.is_service_active ? 'Active' : 'Inactive'}</span>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleStatus(); }}
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          {service.is_service_active ? (
+            <Power className="w-4 h-4 text-green-500" />
+          ) : (
+            <PowerOff className="w-4 h-4 text-gray-400" />
+          )}
+        </button>
+      </div>
+
+      <div className="flex items-start gap-3 mb-3">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-cyan-500/30">
+          <Wrench className="w-6 h-6 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 dark:text-white truncate">{service.service_title}</h3>
+          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+            {service.service_category && (
+              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                {service.service_category}
+              </span>
+            )}
+            {service.workshop_name && (
+              <span className="text-[9px] text-gray-500 dark:text-gray-400 flex items-center gap-0.5">
+                <Building2 className="w-2.5 h-2.5" />
+                {service.workshop_name}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {service.service_description && (
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+          {service.service_description}
+        </p>
+      )}
+
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+        <div>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400">Base Price</p>
+          <p className="text-sm font-bold text-green-600 dark:text-green-400">
+            TZS {parseFloat(service.service_base_price).toLocaleString()}
+          </p>
+        </div>
+        <div className="flex gap-1.5">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            className="flex items-center gap-1 px-2.5 py-1 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg text-[10px] font-medium hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
+          >
+            <Edit2 className="w-3 h-3" />
+            Edit
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-[10px] font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+          >
+            <Trash2 className="w-3 h-3" />
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center mt-2 text-[9px] text-gray-400 gap-1">
+        <Eye className="w-2.5 h-2.5" />
+        Tap for details
+      </div>
+    </div>
+  );
+};
+
+export default function RepairServicesManagement() {
   const navigate = useNavigate();
+  const { user } = useUser();
+  const [showSidebar, setShowSidebar] = useState(false);
 
   // State
-  const [services, setServices] = useState<RepairService[]>(mockServices);
-  const [workshops, setWorkshops] = useState<Workshop[]>(mockWorkshops);
-  const [loading, setLoading] = useState(false);
+  const [services, setServices] = useState<RepairService[]>([]);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -563,15 +560,27 @@ const RepairServicesManagement: React.FC = () => {
   const [selectedService, setSelectedService] = useState<RepairService | null>(null);
   const [editingService, setEditingService] = useState<RepairService | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [serviceToDelete, setServiceToDelete] = useState<number | null>(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
   const [filterWorkshop, setFilterWorkshop] = useState<number | null>(null);
   const [showInactive, setShowInactive] = useState(false);
-  const [isDark, setIsDark] = useState(false);
 
-  // Form Data
+  // Confirmation Modal
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'confirm' | 'info';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    onCancel?: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    details?: { label: string; value: string }[];
+  }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
+
   const [formData, setFormData] = useState<ServiceFormData>({
     service_title: '',
     service_description: '',
@@ -581,39 +590,118 @@ const RepairServicesManagement: React.FC = () => {
     is_service_active: true,
   });
 
-  // Filter services
-  const filteredServices = useMemo(() => {
-    let filtered = services;
-    
-    if (filterWorkshop) {
-      filtered = filtered.filter(s => s.workshop === filterWorkshop);
-    }
-    
-    if (!showInactive) {
-      filtered = filtered.filter(s => s.is_service_active);
-    }
-    
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(s =>
-        s.service_title.toLowerCase().includes(query) ||
-        (s.service_description?.toLowerCase() || '').includes(query) ||
-        (s.service_category?.toLowerCase() || '').includes(query) ||
-        (s.workshop_name?.toLowerCase() || '').includes(query)
-      );
-    }
-    
-    return filtered;
-  }, [services, searchQuery, filterWorkshop, showInactive]);
-
-  // Stats
-  const stats = {
-    total: services.length,
-    active: services.filter(s => s.is_service_active).length,
-    categories: [...new Set(services.map(s => s.service_category).filter(Boolean))].length,
+  const showConfirmationModal = (
+    type: 'success' | 'error' | 'confirm' | 'info',
+    title: string,
+    message: string,
+    onConfirm?: () => void,
+    onCancel?: () => void,
+    confirmText?: string,
+    cancelText?: string,
+    details?: { label: string; value: string }[]
+  ) => {
+    setConfirmationModal({
+      isOpen: true,
+      type,
+      title,
+      message,
+      onConfirm,
+      onCancel: onCancel || (() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))),
+      confirmText,
+      cancelText,
+      details,
+    });
   };
 
-  // Handle add
+  // Fetch workshops
+  const fetchWorkshops = async () => {
+    try {
+      const response = await fetch(`${WORKSHOPS_ENDPOINT}?is_workshop_active=true`);
+      if (!response.ok) throw new Error('Failed to fetch workshops');
+      const data = await response.json();
+      const workshopsList = data.results || data;
+      setWorkshops(workshopsList);
+    } catch (error) {
+      console.error('Error fetching workshops:', error);
+    }
+  };
+
+  // Fetch services
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      let url = `${REPAIR_SERVICES_ENDPOINT}`;
+      
+      const params = new URLSearchParams();
+      if (filterWorkshop) {
+        params.append('workshop', filterWorkshop.toString());
+      }
+      if (!showInactive) {
+        params.append('is_service_active', 'true');
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const servicesList = data.results || data;
+      
+      const servicesWithWorkshopNames = await Promise.all(
+        servicesList.map(async (service: RepairService) => {
+          if (service.workshop_name) return service;
+          
+          if (service.workshop) {
+            try {
+              const workshopRes = await fetch(`${WORKSHOPS_ENDPOINT}${service.workshop}/`);
+              if (workshopRes.ok) {
+                const workshopData = await workshopRes.json();
+                return { ...service, workshop_name: workshopData.workshop_name };
+              }
+            } catch (e) {}
+          }
+          return { ...service, workshop_name: 'All Workshops' };
+        })
+      );
+      
+      setServices(servicesWithWorkshopNames);
+      
+    } catch (error: any) {
+      console.error('Fetch error:', error);
+      showConfirmationModal('error', 'Error', error.message || 'Failed to load services');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkshops();
+    fetchServices();
+  }, []);
+
+  useEffect(() => {
+    fetchServices();
+  }, [filterWorkshop, showInactive]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchServices();
+  }, []);
+
+  const filteredServices = services.filter(service =>
+    service.service_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    service.service_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    service.service_category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    service.workshop_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleAdd = () => {
     setEditingService(null);
     setFormData({
@@ -627,7 +715,6 @@ const RepairServicesManagement: React.FC = () => {
     setShowModal(true);
   };
 
-  // Handle edit
   const handleEdit = (service: RepairService) => {
     setEditingService(service);
     setFormData({
@@ -641,185 +728,265 @@ const RepairServicesManagement: React.FC = () => {
     setShowModal(true);
   };
 
-  // Handle save
-  const handleSave = async () => {
+  const validateForm = (): boolean => {
     if (!formData.service_title.trim()) {
-      alert('Service title is required');
-      return;
+      showConfirmationModal('error', 'Error', 'Service title is required');
+      return false;
     }
     if (!formData.service_base_price) {
-      alert('Base price is required');
-      return;
+      showConfirmationModal('error', 'Error', 'Base price is required');
+      return false;
     }
     const price = parseFloat(formData.service_base_price);
     if (isNaN(price) || price < 0) {
-      alert('Please enter a valid price');
-      return;
+      showConfirmationModal('error', 'Error', 'Please enter a valid price');
+      return false;
     }
+    return true;
+  };
 
+  const handleSave = async () => {
+    if (!validateForm()) return;
+    
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const newService: RepairService = {
-      id: editingService?.id || Date.now(),
+    
+    const submitData = {
       service_title: formData.service_title.trim(),
-      service_description: formData.service_description.trim() || '',
+      service_description: formData.service_description.trim() || null,
       service_category: formData.service_category.trim() || null,
-      service_base_price: formData.service_base_price,
+      service_base_price: parseFloat(formData.service_base_price),
       workshop: formData.workshop,
-      workshop_name: formData.workshop ? workshops.find(w => w.id === formData.workshop)?.workshop_name : 'All Workshops',
       is_service_active: formData.is_service_active,
-      service_created: editingService?.service_created || new Date().toISOString(),
     };
-
-    if (editingService) {
-      setServices(prev => prev.map(s => s.id === editingService.id ? newService : s));
-      setSuccessMessage('Service updated successfully!');
-    } else {
-      setServices(prev => [newService, ...prev]);
-      setSuccessMessage('Service added successfully!');
+    
+    try {
+      let response;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      if (editingService) {
+        response = await fetch(`${REPAIR_SERVICES_ENDPOINT}${editingService.id}/`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(submitData),
+        });
+      } else {
+        response = await fetch(REPAIR_SERVICES_ENDPOINT, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(submitData),
+        });
+      }
+      
+      const responseData = await response.json().catch(() => ({}));
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to save service';
+        if (responseData && typeof responseData === 'object') {
+          const errors = Object.entries(responseData)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n');
+          if (errors) errorMessage = errors;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      showConfirmationModal('success', 'Success!', editingService ? 'Service updated successfully!' : 'Service added successfully!');
+      setShowModal(false);
+      fetchServices();
+      
+    } catch (error: any) {
+      console.error('Save error:', error);
+      showConfirmationModal('error', 'Error', error.message || 'Failed to save service');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setShowSuccessModal(true);
-    setShowModal(false);
-    setIsSubmitting(false);
   };
 
-  // Handle delete
   const handleDelete = (serviceId: number) => {
-    setServiceToDelete(serviceId);
-    setShowDeleteModal(true);
+    showConfirmationModal(
+      'confirm',
+      'Delete Service',
+      'Are you sure you want to delete this service? This action cannot be undone.',
+      async () => {
+        setIsSubmitting(true);
+        try {
+          const response = await fetch(`${REPAIR_SERVICES_ENDPOINT}${serviceId}/`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          });
+          
+          if (response.status !== 204 && !response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `HTTP ${response.status}`);
+          }
+          
+          showConfirmationModal('success', 'Deleted!', 'Service deleted successfully!');
+          fetchServices();
+          
+        } catch (error: any) {
+          console.error('Delete error:', error);
+          showConfirmationModal('error', 'Error', error.message || 'Failed to delete service');
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      undefined,
+      'Delete',
+      'Cancel'
+    );
   };
 
-  const confirmDelete = async () => {
-    if (!serviceToDelete) return;
-    
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setServices(prev => prev.filter(s => s.id !== serviceToDelete));
-    setSuccessMessage('Service deleted successfully!');
-    setShowSuccessModal(true);
-    setShowDeleteModal(false);
-    setServiceToDelete(null);
-    setIsSubmitting(false);
-  };
-
-  // Handle toggle status
   const handleToggleStatus = async (service: RepairService) => {
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    setServices(prev => prev.map(s =>
-      s.id === service.id ? { ...s, is_service_active: !s.is_service_active } : s
-    ));
     
-    setSuccessMessage(`Service ${service.is_service_active ? 'deactivated' : 'activated'} successfully!`);
-    setShowSuccessModal(true);
-    setIsSubmitting(false);
+    const submitData = {
+      service_title: service.service_title,
+      service_description: service.service_description,
+      service_category: service.service_category,
+      service_base_price: parseFloat(service.service_base_price),
+      workshop: service.workshop,
+      is_service_active: !service.is_service_active,
+    };
+    
+    try {
+      const response = await fetch(`${REPAIR_SERVICES_ENDPOINT}${service.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      showConfirmationModal('success', 'Success!', `Service ${!service.is_service_active ? 'activated' : 'deactivated'} successfully!`);
+      fetchServices();
+      
+    } catch (error: any) {
+      console.error('Status toggle error:', error);
+      showConfirmationModal('error', 'Error', 'Failed to update service status');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Handle refresh
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setRefreshing(false);
+  // Stats
+  const stats = {
+    total: services.length,
+    active: services.filter(s => s.is_service_active).length,
+    categories: [...new Set(services.map(s => s.service_category).filter(Boolean))].length,
   };
 
-  // Handle card press
-  const handleCardPress = (service: RepairService) => {
-    setSelectedService(service);
-    setShowDetailModal(true);
-  };
+  // Loading state
+  if (loading && !refreshing) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Loading repair services...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar isVisible={showSidebar} onClose={() => setShowSidebar(false)} />
+
       {/* Header */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-xl transition-all duration-200 shadow-md hover:shadow-cyan-500/30"
-              >
-                ← Back
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-cyan-400 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
-                  Repair Services
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Manage all repair services offered</p>
-              </div>
-            </div>
+      <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setIsDark(!isDark)}
-                className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all duration-200"
+                onClick={() => navigate('/dashboard')}
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
               >
-                {isDark ? 'Light' : 'Dark'}
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Repair Services</h1>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                  Manage all repair services offered
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleRefresh}
-                className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all duration-200"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs transition-colors"
               >
-                Refresh
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
               </button>
               <button
                 onClick={handleAdd}
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white text-2xl font-bold flex items-center justify-center shadow-lg shadow-cyan-500/30 transition-all duration-200 hover:scale-105"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium transition-colors shadow-md shadow-cyan-500/30"
               >
-                +
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add</span>
               </button>
             </div>
           </div>
 
           {/* Search and Filter */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 flex items-center gap-3 bg-white dark:bg-gray-700/50 rounded-2xl px-5 py-3 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-              <span className="text-gray-400 text-lg">🔍</span>
+          <div className="flex gap-2 mt-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 font-medium"
+                className="w-full pl-9 pr-10 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
                 placeholder="Search by title, category, workshop..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 text-lg font-bold">
-                  ✕
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
             <button
-              className="w-12 h-12 rounded-full bg-white dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 relative"
               onClick={() => setShowFilterModal(true)}
+              className={`relative w-10 h-10 rounded-xl border flex items-center justify-center transition-colors ${
+                (filterWorkshop !== null || showInactive)
+                  ? 'bg-cyan-100 dark:bg-cyan-900/30 border-cyan-500 text-cyan-600 dark:text-cyan-400'
+                  : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
             >
-              <span className="text-gray-600 dark:text-gray-300 text-lg">⚙</span>
+              <Filter className="w-4 h-4" />
               {(filterWorkshop !== null || showInactive) && (
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full border-2 border-white dark:border-gray-900" />
               )}
             </button>
           </div>
 
           {/* Active Filters */}
           {(filterWorkshop !== null || showInactive) && (
-            <div className="flex gap-2 pb-3 overflow-x-auto">
+            <div className="flex gap-2 mt-2 overflow-x-auto pb-1 scrollbar-hide">
               {filterWorkshop !== null && workshops.find(w => w.id === filterWorkshop) && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-500 rounded-full">
-                  <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
-                    Workshop: {workshops.find(w => w.id === filterWorkshop)?.workshop_name}
-                  </span>
-                  <button onClick={() => setFilterWorkshop(null)} className="text-cyan-500 hover:text-cyan-600">
-                    ✕
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-cyan-50 dark:bg-cyan-900/30 border border-cyan-200 dark:border-cyan-800 rounded-full text-xs text-cyan-600 dark:text-cyan-400 whitespace-nowrap">
+                  Workshop: {workshops.find(w => w.id === filterWorkshop)?.workshop_name}
+                  <button onClick={() => setFilterWorkshop(null)} className="hover:text-cyan-800">
+                    <X className="w-3 h-3" />
                   </button>
                 </div>
               )}
               {showInactive && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-500 rounded-full">
-                  <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">Showing Inactive</span>
-                  <button onClick={() => setShowInactive(false)} className="text-cyan-500 hover:text-cyan-600">
-                    ✕
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-cyan-50 dark:bg-cyan-900/30 border border-cyan-200 dark:border-cyan-800 rounded-full text-xs text-cyan-600 dark:text-cyan-400 whitespace-nowrap">
+                  Showing Inactive
+                  <button onClick={() => setShowInactive(false)} className="hover:text-cyan-800">
+                    <X className="w-3 h-3" />
                   </button>
                 </div>
               )}
@@ -828,50 +995,44 @@ const RepairServicesManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50 flex items-center gap-4 hover:shadow-md transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <span className="text-white text-xl font-bold">S</span>
+      {/* Stats Section */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Wrench className="w-4 h-4 text-cyan-500" />
+              <div>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Total Services</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Services</p>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <div>
+                <p className="text-lg font-bold text-green-500">{stats.active}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Active</p>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50 flex items-center gap-4 hover:shadow-md transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/20">
-              <span className="text-white text-xl font-bold">A</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Active</p>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50 flex items-center gap-4 hover:shadow-md transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <span className="text-white text-xl font-bold">C</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.categories}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Categories</p>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Tag className="w-4 h-4 text-yellow-500" />
+              <div>
+                <p className="text-lg font-bold text-yellow-500">{stats.categories}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Categories</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Services List */}
-      <div className="max-w-7xl mx-auto px-4 pb-32">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 pb-32">
         {filteredServices.length === 0 ? (
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-12 text-center border border-gray-200/50 dark:border-gray-700/50">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <span className="text-5xl font-bold text-gray-400 dark:text-gray-500">S</span>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <Wrench className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
               {searchQuery || filterWorkshop ? 'No services found' : 'No services available'}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {searchQuery || filterWorkshop 
                 ? 'Try adjusting your filters or search term' 
                 : 'Add your first repair service to get started'}
@@ -879,14 +1040,14 @@ const RepairServicesManagement: React.FC = () => {
             {!searchQuery && !filterWorkshop && !showInactive && (
               <button
                 onClick={handleAdd}
-                className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-2xl shadow-lg shadow-cyan-500/30 transition-all duration-200 hover:scale-105"
+                className="mt-4 px-5 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-medium text-sm transition-colors"
               >
-                + Add First Service
+                Add First Service
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredServices.map((service) => (
               <ServiceCard
                 key={service.id}
@@ -894,7 +1055,10 @@ const RepairServicesManagement: React.FC = () => {
                 onEdit={() => handleEdit(service)}
                 onDelete={() => handleDelete(service.id)}
                 onToggleStatus={() => handleToggleStatus(service)}
-                onPress={() => handleCardPress(service)}
+                onPress={() => {
+                  setSelectedService(service);
+                  setShowDetailModal(true);
+                }}
               />
             ))}
           </div>
@@ -903,90 +1067,96 @@ const RepairServicesManagement: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-            <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 p-5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 p-4 flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold text-white">
+                <h2 className="text-lg font-bold text-white">
                   {editingService ? 'Edit Service' : 'Add New Service'}
-                </h3>
-                <p className="text-sm text-white/90">
+                </h2>
+                <p className="text-xs text-white/80">
                   {editingService ? 'Update service details' : 'Register a new repair service'}
                 </p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-2xl font-bold transition-all duration-200 flex items-center justify-center"
+                disabled={isSubmitting}
+                className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
               >
-                ✕
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-130px)]">
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Service Title <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
-                    placeholder="e.g., Engine Diagnostics"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
+                    placeholder="e.g., Juma Automatica"
                     value={formData.service_title}
                     onChange={(e) => setFormData({...formData, service_title: e.target.value})}
+                    disabled={isSubmitting}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
-                    Category <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Category <span className="text-gray-400 text-[10px]">(Optional)</span>
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                     placeholder="e.g., Engine, Transmission, Electrical"
                     value={formData.service_category}
                     onChange={(e) => setFormData({...formData, service_category: e.target.value})}
+                    disabled={isSubmitting}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Base Price (TZS) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
-                    placeholder="50000"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
+                    placeholder="e.g., 50000"
                     value={formData.service_base_price}
                     onChange={(e) => setFormData({...formData, service_base_price: e.target.value})}
+                    disabled={isSubmitting}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
-                    Workshop <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Workshop <span className="text-gray-400 text-[10px]">(Optional)</span>
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mt-1">
                     <button
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                         formData.workshop === null
                           ? 'bg-cyan-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                       onClick={() => setFormData({...formData, workshop: null})}
+                      disabled={isSubmitting}
                     >
                       All Workshops
                     </button>
                     {workshops.filter(w => w.is_workshop_active).map((workshop) => (
                       <button
                         key={workshop.id}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                           formData.workshop === workshop.id
                             ? 'bg-cyan-500 text-white'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                         onClick={() => setFormData({...formData, workshop: workshop.id})}
+                        disabled={isSubmitting}
                       >
                         {workshop.workshop_name}
                       </button>
@@ -995,59 +1165,90 @@ const RepairServicesManagement: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
-                    Description <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Description <span className="text-gray-400 text-[10px]">(Optional)</span>
                   </label>
                   <textarea
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none resize-none min-h-[80px]"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors resize-none"
                     placeholder="Describe what this service includes..."
+                    rows={3}
                     value={formData.service_description}
                     onChange={(e) => setFormData({...formData, service_description: e.target.value})}
-                    rows={3}
+                    disabled={isSubmitting}
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl">
+                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Service Active</label>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Service Active</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Available for customer bookings</p>
                   </div>
                   <button
-                    className={`w-12 h-6 rounded-full transition-all duration-200 ${
+                    className={`relative w-12 h-6 rounded-full transition-colors ${
                       formData.is_service_active ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                     onClick={() => setFormData({...formData, is_service_active: !formData.is_service_active})}
-                  >
-                    <div className={`w-5 h-5 rounded-full bg-white transition-all duration-200 ${
-                      formData.is_service_active ? 'translate-x-6' : 'translate-x-0.5'
-                    } mt-0.5`} />
-                  </button>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    className="flex-1 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-2xl text-gray-700 dark:text-gray-300 font-semibold transition-all duration-200"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-2xl shadow-lg shadow-cyan-500/30 transition-all duration-200 disabled:opacity-50"
-                    onClick={handleSave}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Saving...' : (editingService ? 'Update Service' : 'Save Service')}
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                      formData.is_service_active ? 'right-1' : 'left-1'
+                    }`} />
                   </button>
                 </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowModal(false)}
+                  disabled={isSubmitting}
+                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-xl font-medium text-sm transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSubmitting}
+                  className="flex-1 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-cyan-500/30"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    editingService ? 'UPDATE SERVICE' : 'SAVE SERVICE'
+                  )}
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Service Detail Modal */}
+      <ServiceDetailModal
+        isOpen={showDetailModal}
+        service={selectedService}
+        onClose={() => setShowDetailModal(false)}
+        onEdit={() => {
+          if (selectedService) {
+            setShowDetailModal(false);
+            handleEdit(selectedService);
+          }
+        }}
+        onDelete={() => {
+          if (selectedService) {
+            setShowDetailModal(false);
+            handleDelete(selectedService.id);
+          }
+        }}
+        onToggleStatus={() => {
+          if (selectedService) {
+            handleToggleStatus(selectedService);
+          }
+        }}
+      />
+
       {/* Filter Modal */}
       <FilterModal
-        visible={showFilterModal}
+        isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
         workshops={workshops}
         selectedWorkshop={filterWorkshop}
@@ -1056,60 +1257,66 @@ const RepairServicesManagement: React.FC = () => {
         onToggleShowInactive={(value) => setShowInactive(value)}
       />
 
-      {/* Detail Modal */}
-      {showDetailModal && selectedService && (
-        <ServiceDetailModal
-          visible={showDetailModal}
-          service={selectedService}
-          onClose={() => setShowDetailModal(false)}
-          onEdit={() => {
-            if (selectedService) {
-              handleEdit(selectedService);
-            }
-          }}
-          onDelete={() => {
-            if (selectedService) {
-              handleDelete(selectedService.id);
-            }
-          }}
-          onToggleStatus={() => {
-            if (selectedService) {
-              handleToggleStatus(selectedService);
-            }
-          }}
-        />
-      )}
-
-      {/* Delete Confirmation Modal */}
+      {/* Confirmation Modal */}
       <ConfirmationModal
-        visible={showDeleteModal}
-        message="Are you sure you want to delete this service? This action cannot be undone."
-        onConfirm={confirmDelete}
-        onCancel={() => {
-          setShowDeleteModal(false);
-          setServiceToDelete(null);
-        }}
-        isDestructive={true}
-      />
-
-      {/* Success Modal */}
-      <SuccessModal
-        visible={showSuccessModal}
-        message={successMessage}
-        onClose={() => setShowSuccessModal(false)}
+        isOpen={confirmationModal.isOpen}
+        type={confirmationModal.type}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={confirmationModal.onCancel}
+        confirmText={confirmationModal.confirmText}
+        cancelText={confirmationModal.cancelText}
+        details={confirmationModal.details}
       />
 
       {/* Loading Overlay */}
-      {isSubmitting && !showSuccessModal && !showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl text-center min-w-[180px]">
-            <div className="w-14 h-14 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400 font-medium">Processing...</p>
+      {isSubmitting && !confirmationModal.isOpen && !showModal && !showDetailModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 flex flex-col items-center shadow-2xl">
+            <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
+            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">Processing...</p>
           </div>
         </div>
       )}
+
+      {/* Custom Animations */}
+      <style>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { transform: scale(0.9); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slide-up {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </div>
   );
-};
-
-export default RepairServicesManagement;
+}

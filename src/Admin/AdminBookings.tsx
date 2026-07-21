@@ -1,61 +1,56 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// src/pages/admin/AdminBookings.tsx
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import Sidebar from '../components/Sidebar';
 import {
   ArrowLeft,
+  RefreshCw,
+  Search,
   X,
-  Check,
-  AlertCircle,
-  Loader,
+  Eye,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  MapPin,
   Phone,
   Mail,
-  MapPin,
-  Calendar,
-  Clock,
   User,
   Car,
-  DollarSign,
-  Info,
-  Shield,
-  CheckCircle,
-  Clock as ClockIcon,
-  Send,
-  ChevronRight,
-  ChevronLeft,
-  Calendar as CalendarIcon,
-  Smartphone,
-  Briefcase,
-  FileText,
-  Plus,
-  Star,
-  Wifi,
-  WifiOff,
-  Sun,
-  Moon,
-  Menu,
-  Home,
-  Grid,
-  LogOut,
-  Settings,
-  HelpCircle,
-  Search,
-  Filter,
-  RefreshCw,
-  Eye,
-  Edit,
-  Trash2,
-  Map,
-  Navigation,
-  Building,
   CreditCard,
-  Tag,
-  Users,
-  Award,
-  AlertTriangle,
-  Image as ImageIcon,
-  Receipt,
+  Calendar,
+  Loader2,
+  List,
+  Trash2,
+  Check,
+  XCircle,
+  DollarSign,
+  FileText,
+  Zap,
+  ExternalLink,
+  ChevronDown,
+  Navigation,
+  Map as MapIcon,
+  Globe,
   Wallet,
-  TrendingUp
+  Image,
+  Receipt,
+  Send,
+  MessageCircle,
+  Shield,
+  Award,
+  Building2,
+  Smartphone,
+  Copy,
+  QrCode
 } from 'lucide-react';
+
+// API Configuration
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const PUBLIC_REQUESTS_URL = `${API_BASE_URL}/public-requests/`;
+const PAYMENT_RECORDS_URL = `${API_BASE_URL}/pay/payment-records/me`;
 
 // Types
 interface PublicRequest {
@@ -136,41 +131,163 @@ interface UserLocation {
   longitude: number;
 }
 
-// Mock user data
-const mockUser = {
-  full_name: 'Admin User',
-  phone: '+255 712 345 678',
-  role: 'admin',
-  username: 'admin',
-  email: 'admin@example.com',
-  first_name: 'Admin',
-  last_name: 'User'
+// Confirmation Modal Component
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  type: 'success' | 'error' | 'confirm' | 'info';
+  title: string;
+  message: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  details?: { label: string; value: string }[];
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  isOpen,
+  type,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  details
+}) => {
+  if (!isOpen) return null;
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success':
+        return <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-green-500" />;
+      case 'error':
+        return <AlertTriangle className="w-14 h-14 sm:w-16 sm:h-16 text-red-500" />;
+      case 'confirm':
+        return <AlertTriangle className="w-14 h-14 sm:w-16 sm:h-16 text-yellow-500" />;
+      case 'info':
+        return <Info className="w-14 h-14 sm:w-16 sm:h-16 text-cyan-500" />;
+      default:
+        return <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-cyan-500" />;
+    }
+  };
+
+  const getButtonColors = () => {
+    switch (type) {
+      case 'success':
+        return 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700';
+      case 'error':
+        return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700';
+      case 'confirm':
+        return 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700';
+      case 'info':
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700';
+      default:
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 sm:p-8 w-full max-w-md text-center shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-center mb-4">
+          <div className={`p-3 rounded-full ${
+            type === 'success' ? 'bg-green-100 dark:bg-green-900/30' :
+            type === 'error' ? 'bg-red-100 dark:bg-red-900/30' :
+            type === 'confirm' ? 'bg-yellow-100 dark:bg-yellow-900/30' :
+            'bg-cyan-100 dark:bg-cyan-900/30'
+          }`}>
+            {getIcon()}
+          </div>
+        </div>
+        
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {message}
+        </p>
+
+        {details && details.length > 0 && (
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4 text-left w-full">
+            {details.map((detail, index) => (
+              <div key={index} className="flex justify-between py-1 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                <span className="text-xs text-gray-500 dark:text-gray-400">{detail.label}</span>
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{detail.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <div className="flex gap-3">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="flex-1 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-semibold text-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400"
+            >
+              {cancelText}
+            </button>
+          )}
+          {onConfirm && (
+            <button
+              onClick={onConfirm}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()} ${type === 'success' ? 'shadow-green-500/30' : type === 'error' ? 'shadow-red-500/30' : type === 'confirm' ? 'shadow-yellow-500/30' : 'shadow-cyan-500/30'}`}
+            >
+              {confirmText}
+            </button>
+          )}
+          {!onConfirm && type === 'success' && (
+            <button
+              onClick={onCancel}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()}`}
+            >
+              OK
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'All', icon: <FileText className="w-3.5 h-3.5" /> },
+  { value: 'all', label: 'All', icon: <List className="w-3.5 h-3.5" /> },
   { value: 'pending', label: 'Pending', icon: <Clock className="w-3.5 h-3.5" /> },
   { value: 'viewed', label: 'Viewed', icon: <Eye className="w-3.5 h-3.5" /> },
   { value: 'offers_received', label: 'Offers', icon: <DollarSign className="w-3.5 h-3.5" /> },
   { value: 'accepted', label: 'Accepted', icon: <CheckCircle className="w-3.5 h-3.5" /> },
-  { value: 'in_progress', label: 'In Progress', icon: <Loader className="w-3.5 h-3.5" /> },
+  { value: 'in_progress', label: 'In Progress', icon: <Zap className="w-3.5 h-3.5" /> },
   { value: 'completed', label: 'Completed', icon: <Check className="w-3.5 h-3.5" /> },
-  { value: 'cancelled', label: 'Cancelled', icon: <X className="w-3.5 h-3.5" /> },
-  { value: 'expired', label: 'Expired', icon: <AlertCircle className="w-3.5 h-3.5" /> },
+  { value: 'cancelled', label: 'Cancelled', icon: <XCircle className="w-3.5 h-3.5" /> },
+  { value: 'expired', label: 'Expired', icon: <AlertTriangle className="w-3.5 h-3.5" /> },
 ];
 
-const PAYMENT_STATUS_COLORS = {
-  pending: '#f59e0b',
-  confirmed: '#3b82f6',
-  verified: '#8b5cf6',
-  completed: '#10b981',
-  failed: '#ef4444',
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  pending: 'text-yellow-500 bg-yellow-500/10',
+  confirmed: 'text-blue-500 bg-blue-500/10',
+  verified: 'text-purple-500 bg-purple-500/10',
+  completed: 'text-green-500 bg-green-500/10',
+  failed: 'text-red-500 bg-red-500/10',
 };
 
-const AdminBookingsScreen: React.FC = () => {
+export default function AdminBookings() {
   const navigate = useNavigate();
+  const { user } = useUser();
+  const [showSidebar, setShowSidebar] = useState(false);
 
-  // State
+  const getLoggedInUserName = useCallback((): string => {
+    if (user) {
+      const firstName = (user as any).first_name || (user as any).firstName || '';
+      const lastName = (user as any).last_name || (user as any).lastName || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+      if (fullName) return fullName;
+      const username = (user as any).username || '';
+      const email = (user as any).email || '';
+      return username || email || 'Admin User';
+    }
+    return 'Admin User';
+  }, [user]);
+
   const [requests, setRequests] = useState<PublicRequest[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<PublicRequest[]>([]);
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -183,89 +300,57 @@ const AdminBookingsScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updating, setUpdating] = useState<number | null>(null);
-  const [isDark, setIsDark] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState<string | null>(null);
 
   // Modal States
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showMapModal, setShowMapModal] = useState(false);
   const [showScreenshotModal, setShowScreenshotModal] = useState(false);
 
-  // Map States
-  const [customerLocation, setCustomerLocation] = useState<UserLocation | null>(null);
-  const [mapLoading, setMapLoading] = useState(false);
-
-  // Notification
-  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
-  const [showMessage, setShowMessage] = useState(false);
-
-  // Edit Form
-  const [editForm, setEditForm] = useState<Partial<PublicRequest>>({
-    customer_name: '',
-    customer_phone: '',
-    customer_email: '',
-    requested_service: '',
-    request_description: '',
-    vehicle_brand: '',
-    vehicle_model: '',
-    vehicle_year: '',
-    vehicle_color: '',
-    license_plate: '',
-    service_location: '',
-    location_maps_link: '',
-    location_latitude: '',
-    location_longitude: '',
-    preferred_service_date: '',
-    preferred_service_time: '',
-    request_urgency: 'standard',
-    budget_minimum: '',
-    budget_maximum: '',
-    is_budget_flexible: false,
-    request_status: 'pending',
-    customer_notes: '',
+  // Confirmation Modal
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'confirm' | 'info';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    onCancel?: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    details?: { label: string; value: string }[];
+  }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: '',
   });
 
-  // Mock user
-  const user = mockUser;
-
-  // Colors
-  const colors = {
-    background: isDark ? '#0f172a' : '#f8fafc',
-    card: isDark ? '#1e293b' : '#ffffff',
-    text: isDark ? '#f1f5f9' : '#0f172a',
-    textSecondary: isDark ? '#94a3b8' : '#475569',
-    border: isDark ? '#334155' : '#e2e8f0',
-    inputBg: isDark ? '#334155' : '#f1f5f9',
-    primary: '#0891b2',
-    primaryDark: '#0e7490',
-    success: '#10b981',
-    warning: '#f59e0b',
-    error: '#ef4444',
-    purple: '#8b5cf6',
-    indigo: '#6366f1',
-    green: '#22c55e',
-    cyan: '#06b6d4',
+  const showConfirmationModal = (
+    type: 'success' | 'error' | 'confirm' | 'info',
+    title: string,
+    message: string,
+    onConfirm?: () => void,
+    onCancel?: () => void,
+    confirmText?: string,
+    cancelText?: string,
+    details?: { label: string; value: string }[]
+  ) => {
+    setConfirmationModal({
+      isOpen: true,
+      type,
+      title,
+      message,
+      onConfirm,
+      onCancel: onCancel || (() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))),
+      confirmText,
+      cancelText,
+      details,
+    });
   };
 
-  // ============================================================================
-  // UTILITY FUNCTIONS
-  // ============================================================================
-
-  const getLoggedInUserName = useCallback((): string => {
-    if (user) {
-      const firstName = user.first_name || '';
-      const lastName = user.last_name || '';
-      const fullName = `${firstName} ${lastName}`.trim();
-      if (fullName) return fullName;
-      return user.username || user.email || 'Admin User';
-    }
-    return 'Admin User';
-  }, [user]);
-
   const formatCurrency = useCallback((amount: string | null): string => {
-    if (!amount || amount === '0.00' || amount === '0') return 'TZS 0';
+    if (!amount || amount === '0.00') return 'TZS 0';
     return `TZS ${new Intl.NumberFormat('en-TZ', { minimumFractionDigits: 0 }).format(parseFloat(amount))}`;
   }, []);
 
@@ -301,71 +386,49 @@ const AdminBookingsScreen: React.FC = () => {
 
   const getStatusColor = useCallback((status: string): string => {
     const map: Record<string, string> = {
-      pending: colors.warning,
-      viewed: colors.cyan,
-      offers_received: colors.purple,
-      accepted: colors.success,
-      in_progress: colors.indigo,
-      completed: colors.green,
-      cancelled: colors.error,
-      expired: colors.textSecondary,
+      pending: 'text-yellow-500',
+      viewed: 'text-cyan-500',
+      offers_received: 'text-purple-500',
+      accepted: 'text-green-500',
+      in_progress: 'text-indigo-500',
+      completed: 'text-emerald-500',
+      cancelled: 'text-red-500',
+      expired: 'text-gray-500',
     };
-    return map[status] || colors.warning;
-  }, [colors]);
+    return map[status] || 'text-yellow-500';
+  }, []);
 
   const getStatusBgColor = useCallback((status: string): string => {
-    const colorMap: Record<string, string> = {
-      pending: colors.warning,
-      viewed: colors.cyan,
-      offers_received: colors.purple,
-      accepted: colors.success,
-      in_progress: colors.indigo,
-      completed: colors.green,
-      cancelled: colors.error,
-      expired: colors.textSecondary,
+    const map: Record<string, string> = {
+      pending: 'bg-yellow-500/10 dark:bg-yellow-500/20',
+      viewed: 'bg-cyan-500/10 dark:bg-cyan-500/20',
+      offers_received: 'bg-purple-500/10 dark:bg-purple-500/20',
+      accepted: 'bg-green-500/10 dark:bg-green-500/20',
+      in_progress: 'bg-indigo-500/10 dark:bg-indigo-500/20',
+      completed: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+      cancelled: 'bg-red-500/10 dark:bg-red-500/20',
+      expired: 'bg-gray-500/10 dark:bg-gray-500/20',
     };
-    const bgColor = colorMap[status] || colors.warning;
-    return isDark ? `${bgColor}20` : `${bgColor}15`;
-  }, [isDark, colors]);
+    return map[status] || 'bg-yellow-500/10';
+  }, []);
 
   const getUrgencyColor = useCallback((urgency: string): string => {
     const map: Record<string, string> = {
-      standard: colors.textSecondary,
-      priority: colors.warning,
-      emergency: colors.error,
+      standard: 'text-gray-500',
+      priority: 'text-yellow-500',
+      emergency: 'text-red-500',
     };
-    return map[urgency] || colors.textSecondary;
-  }, [colors]);
+    return map[urgency] || 'text-gray-500';
+  }, []);
 
   const countByStatus = useCallback((status: string): number => {
     if (status === 'all') return requests.length;
     return requests.filter(r => r.request_status === status).length;
   }, [requests]);
 
-  const getCoordinatesFromRequest = useCallback((request: PublicRequest): UserLocation | null => {
-    if (request.location_latitude && request.location_longitude) {
-      const lat = parseFloat(request.location_latitude);
-      const lng = parseFloat(request.location_longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        return { latitude: lat, longitude: lng };
-      }
-    }
-    if (request.location_maps_link) {
-      const match = request.location_maps_link.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-      if (match) {
-        const lat = parseFloat(match[1]);
-        const lng = parseFloat(match[2]);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          return { latitude: lat, longitude: lng };
-        }
-      }
-    }
-    return null;
-  }, []);
-
   const makePhoneCall = useCallback((phoneNumber: string) => {
     if (!phoneNumber) {
-      alert('No phone number available');
+      showConfirmationModal('error', 'Error', 'No phone number available');
       return;
     }
     let cleanNumber = phoneNumber.replace(/\s/g, '');
@@ -375,272 +438,112 @@ const AdminBookingsScreen: React.FC = () => {
     window.location.href = `tel:${cleanNumber}`;
   }, []);
 
-  // ============================================================================
-  // NOTIFICATION
-  // ============================================================================
-
-  const showNotification = useCallback((type: 'success' | 'error' | 'info', text: string) => {
-    setMessage({ type, text });
-    setShowMessage(true);
-    setTimeout(() => {
-      setShowMessage(false);
-      setMessage(null);
-    }, 3000);
-  }, []);
-
-  // ============================================================================
-  // API FUNCTIONS - Mock
-  // ============================================================================
-
-  const mockRequests: PublicRequest[] = [
-    {
-      id: 1,
-      request_code: 'SR-2024-A1B2C3',
-      customer_name: 'John Doe',
-      customer_phone: '+255 712 345 678',
-      customer_email: 'john@example.com',
-      requested_service: 'Engine Diagnostics',
-      request_description: 'Check engine light is on',
-      vehicle_brand: 'Toyota',
-      vehicle_model: 'Corolla',
-      vehicle_year: '2020',
-      vehicle_color: 'Silver',
-      license_plate: 'T123ABC',
-      vehicle_details: 'Toyota Corolla 2020 - Silver',
-      service_location: 'Dar es Salaam, Tanzania',
-      location_maps_link: 'https://www.google.com/maps?q=-6.7924,39.2083',
-      location_latitude: '-6.7924',
-      location_longitude: '39.2083',
-      preferred_service_date: new Date().toISOString(),
-      preferred_service_time: '10:00',
-      formatted_date: 'Jul 20, 2024',
-      formatted_time: '10:00 AM',
-      request_urgency: 'standard',
-      urgency_display: 'Standard',
-      is_urgent_request: false,
-      budget_minimum: '50000',
-      budget_maximum: '150000',
-      is_budget_flexible: true,
-      request_status: 'pending',
-      request_status_display: 'Pending',
-      customer_notes: 'Please call before coming',
-      request_created: new Date().toISOString(),
-      request_updated: new Date().toISOString(),
-      approved_by: null,
-      approved_at: null,
-      fixed_by: null,
-      fixed_at: null,
-      updated_by: null,
-    },
-    {
-      id: 2,
-      request_code: 'SR-2024-D4E5F6',
-      customer_name: 'Jane Smith',
-      customer_phone: '+255 713 456 789',
-      customer_email: 'jane@example.com',
-      requested_service: 'Brake System Repair',
-      request_description: 'Squeaking noise when braking',
-      vehicle_brand: 'Honda',
-      vehicle_model: 'Civic',
-      vehicle_year: '2019',
-      vehicle_color: 'Blue',
-      license_plate: 'T456DEF',
-      vehicle_details: 'Honda Civic 2019 - Blue',
-      service_location: 'Arusha, Tanzania',
-      location_maps_link: null,
-      location_latitude: '-3.3869',
-      location_longitude: '36.6830',
-      preferred_service_date: new Date().toISOString(),
-      preferred_service_time: '14:30',
-      formatted_date: 'Jul 21, 2024',
-      formatted_time: '2:30 PM',
-      request_urgency: 'priority',
-      urgency_display: 'Priority',
-      is_urgent_request: true,
-      budget_minimum: '80000',
-      budget_maximum: '200000',
-      is_budget_flexible: true,
-      request_status: 'accepted',
-      request_status_display: 'Accepted',
-      customer_notes: null,
-      request_created: new Date().toISOString(),
-      request_updated: new Date().toISOString(),
-      approved_by: 'Admin User',
-      approved_at: new Date().toISOString(),
-      fixed_by: null,
-      fixed_at: null,
-      updated_by: 'Admin User',
-    },
-  ];
-
-  const mockPayments: PaymentRecord[] = [
-    {
-      id: 1,
-      payment_id: 'PAY-2024-001',
-      service_request: 1,
-      request_code: 'SR-2024-A1B2C3',
-      customer_name: 'John Doe',
-      customer_phone: '+255 712 345 678',
-      payment_method: 'mpesa',
-      payment_method_name: 'M-Pesa',
-      sender_name: 'John Doe',
-      sender_phone: '+255 712 345 678',
-      sender_email: 'john@example.com',
-      sender_account: '',
-      receiver_name: 'QuickFix Services',
-      receiver_phone: '+255 742 5786 91',
-      receiver_account: '123456',
-      amount: 150000,
-      amount_formatted: 'TZS 150,000',
-      transaction_reference: 'MPS-2024-001234',
-      transaction_id: 'TXN-123456',
-      screenshot_base64: null,
-      screenshot_url: null,
-      proof_uri: null,
-      status: 'confirmed',
-      status_display: 'Confirmed',
-      whatsapp_sent: true,
-      email_sent: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      confirmed_at: new Date().toISOString(),
-      verified_at: null,
-    },
-    {
-      id: 2,
-      payment_id: 'PAY-2024-002',
-      service_request: 2,
-      request_code: 'SR-2024-D4E5F6',
-      customer_name: 'Jane Smith',
-      customer_phone: '+255 713 456 789',
-      payment_method: 'airtel_money',
-      payment_method_name: 'Airtel Money',
-      sender_name: 'Jane Smith',
-      sender_phone: '+255 713 456 789',
-      sender_email: 'jane@example.com',
-      sender_account: '',
-      receiver_name: 'QuickFix Services',
-      receiver_phone: '+255 742 5786 91',
-      receiver_account: '123456',
-      amount: 200000,
-      amount_formatted: 'TZS 200,000',
-      transaction_reference: 'ATM-2024-005678',
-      transaction_id: 'TXN-789012',
-      screenshot_base64: null,
-      screenshot_url: null,
-      proof_uri: null,
-      status: 'pending',
-      status_display: 'Pending',
-      whatsapp_sent: false,
-      email_sent: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      confirmed_at: null,
-      verified_at: null,
-    },
-  ];
-
+  // API Functions
   const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setRequests(mockRequests);
-    } catch (error) {
-      showNotification('error', 'Failed to load requests');
+      const response = await fetch(PUBLIC_REQUESTS_URL);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const requestsList = data.results || data;
+      setRequests(Array.isArray(requestsList) ? requestsList : []);
+    } catch (error: any) {
+      showConfirmationModal('error', 'Error', 'Failed to load requests');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [showNotification]);
+  }, []);
 
   const fetchPayments = useCallback(async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setPayments(mockPayments);
-    } catch (error) {
+      const response = await fetch(PAYMENT_RECORDS_URL);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const paymentsList = data.results || data;
+      setPayments(Array.isArray(paymentsList) ? paymentsList : []);
+    } catch (error: any) {
       console.error('Failed to load payments:', error);
+    }
+  }, []);
+
+  const fetchPaymentForRequest = useCallback(async (requestId: number) => {
+    try {
+      const response = await fetch(`${PAYMENT_RECORDS_URL}?service_request=${requestId}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const paymentsList = data.results || data;
+      if (Array.isArray(paymentsList) && paymentsList.length > 0) {
+        setSelectedPayment(paymentsList[0]);
+        setShowPaymentModal(true);
+      } else {
+        showConfirmationModal('info', 'No Payment', 'No payment records found for this request');
+      }
+    } catch (error: any) {
+      showConfirmationModal('error', 'Error', 'Failed to load payment information');
     }
   }, []);
 
   const updateRequestStatus = useCallback(async (requestId: number, newStatus: string) => {
     try {
       setUpdating(requestId);
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       const userName = getLoggedInUserName();
       const now = new Date().toISOString();
       
-      setRequests(prev => prev.map(req => 
-        req.id === requestId 
-          ? { 
-              ...req, 
-              request_status: newStatus,
-              request_status_display: formatStatus(newStatus),
-              updated_by: userName,
-              request_updated: now
-            }
-          : req
-      ));
+      const payload: any = { request_status: newStatus };
       
-      showNotification('success', `Status updated to ${formatStatus(newStatus)}`);
+      if (newStatus === 'accepted') {
+        payload.approved_by = userName;
+        payload.approved_at = now;
+      } else if (newStatus === 'in_progress' || newStatus === 'completed') {
+        payload.fixed_by = userName;
+        payload.fixed_at = now;
+      }
+      
+      payload.updated_by = userName;
+      
+      const response = await fetch(`${PUBLIC_REQUESTS_URL}${requestId}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || `HTTP ${response.status}`);
+      }
+      
+      await fetchRequests();
+      showConfirmationModal('success', 'Success', `✓ Status updated to ${formatStatus(newStatus)}`);
+      
     } catch (error: any) {
-      showNotification('error', error.message || 'Failed to update status');
+      showConfirmationModal('error', 'Error', error.message || 'Failed to update status');
     } finally {
       setUpdating(null);
     }
-  }, [showNotification, formatStatus, getLoggedInUserName]);
-
-  const updateFullRequest = useCallback(async () => {
-    if (!selectedRequest) return;
-    try {
-      setUpdating(selectedRequest.id);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const userName = getLoggedInUserName();
-      
-      setRequests(prev => prev.map(req => 
-        req.id === selectedRequest.id 
-          ? { 
-              ...req, 
-              ...editForm,
-              updated_by: userName,
-              request_updated: new Date().toISOString()
-            }
-          : req
-      ));
-      
-      showNotification('success', 'Request updated successfully!');
-      setShowEditModal(false);
-      setShowDetailsModal(false);
-    } catch (error: any) {
-      showNotification('error', error.message || 'Failed to update request');
-    } finally {
-      setUpdating(null);
-    }
-  }, [selectedRequest, editForm, showNotification]);
+  }, [showConfirmationModal, formatStatus, getLoggedInUserName, fetchRequests]);
 
   const deleteRequest = useCallback(async () => {
     if (!selectedRequest) return;
     try {
       setUpdating(selectedRequest.id);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await fetch(`${PUBLIC_REQUESTS_URL}${selectedRequest.id}/`, { method: 'DELETE' });
+      if (!response.ok && response.status !== 204) throw new Error(`HTTP ${response.status}`);
       
-      setRequests(prev => prev.filter(req => req.id !== selectedRequest.id));
-      showNotification('success', 'Request deleted successfully!');
+      await fetchRequests();
+      showConfirmationModal('success', 'Deleted', 'Request deleted successfully!');
       setShowDeleteModal(false);
       setShowDetailsModal(false);
       setSelectedRequest(null);
     } catch (error: any) {
-      showNotification('error', error.message || 'Failed to delete request');
+      showConfirmationModal('error', 'Error', error.message || 'Failed to delete request');
     } finally {
       setUpdating(null);
     }
-  }, [selectedRequest, showNotification]);
+  }, [selectedRequest, showConfirmationModal, fetchRequests]);
 
-  // ============================================================================
-  // HANDLERS
-  // ============================================================================
-
+  // Handlers
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     fetchRequests();
@@ -653,58 +556,26 @@ const AdminBookingsScreen: React.FC = () => {
   }, []);
 
   const handleViewPayment = useCallback((request: PublicRequest) => {
-    const payment = payments.find(p => p.service_request === request.id);
-    if (payment) {
-      setSelectedPayment(payment);
-      setShowPaymentModal(true);
-    } else {
-      alert('No payment records found for this request');
-    }
-  }, [payments]);
-
-  const handleEdit = useCallback((request: PublicRequest) => {
-    setEditForm({
-      customer_name: request.customer_name,
-      customer_phone: request.customer_phone,
-      customer_email: request.customer_email,
-      requested_service: request.requested_service,
-      request_description: request.request_description || '',
-      vehicle_brand: request.vehicle_brand,
-      vehicle_model: request.vehicle_model,
-      vehicle_year: request.vehicle_year,
-      vehicle_color: request.vehicle_color,
-      license_plate: request.license_plate,
-      service_location: request.service_location,
-      location_maps_link: request.location_maps_link || '',
-      location_latitude: request.location_latitude,
-      location_longitude: request.location_longitude,
-      preferred_service_date: request.preferred_service_date,
-      preferred_service_time: request.preferred_service_time,
-      request_urgency: request.request_urgency,
-      budget_minimum: request.budget_minimum,
-      budget_maximum: request.budget_maximum,
-      is_budget_flexible: request.is_budget_flexible,
-      request_status: request.request_status,
-      customer_notes: request.customer_notes || '',
-    });
-    setSelectedRequest(request);
-    setShowEditModal(true);
-  }, []);
+    fetchPaymentForRequest(request.id);
+  }, [fetchPaymentForRequest]);
 
   const handleStatusUpdate = useCallback((requestId: number, newStatus: string) => {
-    if (window.confirm(`Change status to "${formatStatus(newStatus)}"?`)) {
-      updateRequestStatus(requestId, newStatus);
-    }
+    setShowStatusDropdown(null);
+    showConfirmationModal(
+      'confirm',
+      'Update Status',
+      `Change status to "${formatStatus(newStatus)}"?`,
+      () => updateRequestStatus(requestId, newStatus),
+      undefined,
+      'Update',
+      'Cancel'
+    );
   }, [formatStatus, updateRequestStatus]);
 
   const handleDelete = useCallback((request: PublicRequest) => {
     setSelectedRequest(request);
     setShowDeleteModal(true);
   }, []);
-
-  // ============================================================================
-  // EFFECTS
-  // ============================================================================
 
   useEffect(() => {
     fetchRequests();
@@ -742,186 +613,166 @@ const AdminBookingsScreen: React.FC = () => {
     setFilteredPayments(filtered);
   }, [payments, searchQuery]);
 
-  // ============================================================================
-  // OPEN MAP MODAL
-  // ============================================================================
-
-  const openMapModal = useCallback((request: PublicRequest) => {
-    setSelectedRequest(request);
-    setMapLoading(true);
-    const coords = getCoordinatesFromRequest(request);
-    if (coords) {
-      setCustomerLocation(coords);
-    }
-    setMapLoading(false);
-    setShowMapModal(true);
-  }, [getCoordinatesFromRequest]);
-
-  // ============================================================================
-  // RENDER FUNCTIONS
-  // ============================================================================
-
-  const renderNotification = () => {
-    if (!showMessage || !message) return null;
-    
-    const bgColors = {
-      success: isDark ? 'bg-green-900/20' : 'bg-green-50',
-      error: isDark ? 'bg-red-900/20' : 'bg-red-50',
-      info: isDark ? 'bg-cyan-900/20' : 'bg-cyan-50',
-    };
-    
-    const textColors = {
-      success: 'text-green-600 dark:text-green-400',
-      error: 'text-red-600 dark:text-red-400',
-      info: 'text-cyan-600 dark:text-cyan-400',
-    };
-    
-    const icons = {
-      success: <CheckCircle className="w-5 h-5 text-green-500" />,
-      error: <AlertCircle className="w-5 h-5 text-red-500" />,
-      info: <Info className="w-5 h-5 text-cyan-500" />,
-    };
-
-    return (
-      <div className={`fixed top-4 left-4 right-4 z-50 ${bgColors[message.type]} border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-lg flex items-center gap-3`}>
-        {icons[message.type]}
-        <span className={`text-sm font-medium ${textColors[message.type]}`}>{message.text}</span>
-      </div>
-    );
-  };
-
+  // Render Functions
   const renderRequestCard = (request: PublicRequest) => {
     const statusColor = getStatusColor(request.request_status);
+    const statusBgColor = getStatusBgColor(request.request_status);
     const urgencyColor = getUrgencyColor(request.request_urgency);
-    const hasLocation = !!(request.location_latitude || request.location_maps_link);
     const budgetRange = formatCurrency(request.budget_minimum) + ' - ' + formatCurrency(request.budget_maximum);
     const isUpdating = updating === request.id;
     const hasPayment = payments.some(p => p.service_request === request.id);
 
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow mb-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className="text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ backgroundColor: statusColor + '20', color: statusColor }}
+      <div
+        key={`request-${request.id}`}
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusBgColor} ${statusColor}`}>
+                {formatStatus(request.request_status)}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                #{request.request_code}
+              </span>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${urgencyColor} bg-current/10`}>
+                {request.urgency_display}
+              </span>
+              {hasPayment && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                  Paid
+                </span>
+              )}
+            </div>
+
+            <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate">
+              {request.requested_service}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <div className="flex items-center gap-1">
+                <User className="w-3.5 h-3.5 text-cyan-500" />
+                <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400">
+                  {request.customer_name}
+                </span>
+              </div>
+              <button
+                onClick={() => makePhoneCall(request.customer_phone)}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-50 dark:bg-cyan-900/20 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors"
+              >
+                <Phone className="w-3 h-3 text-cyan-500" />
+                <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                  {request.customer_phone}
+                </span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <span className="flex items-center gap-1">
+                <Car className="w-3.5 h-3.5" />
+                {request.vehicle_details || 'N/A'}
+              </span>
+              <span className="flex items-center gap-1">
+                <CreditCard className="w-3.5 h-3.5 text-cyan-500" />
+                <span className="text-cyan-600 dark:text-cyan-400 font-medium">{budgetRange}</span>
+              </span>
+              {request.is_budget_flexible && (
+                <span className="text-[10px] font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                  Flexible
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-gray-400">
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {request.formatted_date} at {request.formatted_time}
+              </span>
+              {request.service_location && (
+                <span className="flex items-center gap-1 truncate max-w-[200px]">
+                  <MapPin className="w-3 h-3" />
+                  {request.service_location}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => handleViewDetails(request)}
+              className="p-1.5 rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
+              title="View Details"
             >
-              {formatStatus(request.request_status)}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">#{request.request_code}</span>
+              <Eye className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => handleViewPayment(request)}
+              className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+              title="View Payment"
+            >
+              <Wallet className="w-4 h-4" />
+            </button>
+
+            <div className="relative">
+              <button
+                onClick={() => setShowStatusDropdown(showStatusDropdown === request.id.toString() ? null : request.id.toString())}
+                className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                title="Change Status"
+                disabled={isUpdating}
+              >
+                {isUpdating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+
+              {showStatusDropdown === request.id.toString() && (
+                <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                  {STATUS_OPTIONS.filter(opt => opt.value !== 'all').map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => handleStatusUpdate(request.id, opt.value)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                    >
+                      {opt.icon}
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => handleDelete(request)}
+              className="p-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
-          <div className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: urgencyColor + '20', color: urgencyColor }}>
-            <AlertTriangle className="w-3 h-3" />
-            {request.urgency_display}
-          </div>
         </div>
 
-        {/* Service Name */}
-        <p className="text-base font-semibold text-gray-900 dark:text-white mb-2">{request.requested_service}</p>
-
-        {/* Customer */}
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <User className="w-3.5 h-3.5 text-cyan-500" />
+        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
           <button
-            onClick={() => makePhoneCall(request.customer_phone)}
-            className="text-sm font-bold text-cyan-500 hover:underline"
-          >
-            {request.customer_name}
-          </button>
-          <Phone className="w-3.5 h-3.5 text-cyan-500 ml-2" />
-          <button
-            onClick={() => makePhoneCall(request.customer_phone)}
-            className="text-sm font-bold text-cyan-500 hover:underline"
-          >
-            {request.customer_phone}
-          </button>
-        </div>
-
-        {/* Vehicle Info */}
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{request.vehicle_details}</p>
-
-        {/* Budget */}
-        <div className="flex items-center gap-2 mb-1">
-          <DollarSign className="w-3.5 h-3.5 text-cyan-500" />
-          <span className="text-xs font-semibold text-cyan-500">{budgetRange}</span>
-          {request.is_budget_flexible && (
-            <span className="text-[10px] bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded">Flexible</span>
-          )}
-        </div>
-
-        {/* Date */}
-        <div className="flex items-center gap-1 mb-1">
-          <Calendar className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs text-gray-500 dark:text-gray-400">{request.formatted_date} at {request.formatted_time}</span>
-        </div>
-
-        {/* Location */}
-        {request.service_location && (
-          <div className="flex items-center gap-1 mb-3">
-            <MapPin className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1">{request.service_location}</span>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium rounded-lg transition-colors"
-            onClick={() => handleEdit(request)}
-            disabled={isUpdating}
-          >
-            <Edit className="w-3.5 h-3.5" />
-            Edit
-          </button>
-          <button
-            className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg transition-colors"
             onClick={() => handleStatusUpdate(request.id, 'accepted')}
-            disabled={isUpdating}
+            className="px-2.5 py-1 text-[10px] font-semibold rounded-md bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
           >
-            <CheckCircle className="w-3.5 h-3.5" />
             Accept
           </button>
           <button
-            className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition-colors"
             onClick={() => handleStatusUpdate(request.id, 'in_progress')}
-            disabled={isUpdating}
+            className="px-2.5 py-1 text-[10px] font-semibold rounded-md bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
           >
-            <Loader className="w-3.5 h-3.5" />
             Start
           </button>
           <button
-            className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-medium rounded-lg transition-colors"
             onClick={() => handleStatusUpdate(request.id, 'completed')}
-            disabled={isUpdating}
+            className="px-2.5 py-1 text-[10px] font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
           >
-            <Check className="w-3.5 h-3.5" />
             Complete
-          </button>
-          <button
-            className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg transition-colors"
-            onClick={() => handleViewPayment(request)}
-            disabled={isUpdating}
-          >
-            <CreditCard className="w-3.5 h-3.5" />
-            Payment
-          </button>
-          {hasLocation && (
-            <button
-              className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium rounded-lg transition-colors"
-              onClick={() => openMapModal(request)}
-            >
-              <Map className="w-3.5 h-3.5" />
-              Map
-            </button>
-          )}
-          <button
-            className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors"
-            onClick={() => handleDelete(request)}
-            disabled={isUpdating}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Del
           </button>
         </div>
       </div>
@@ -929,151 +780,141 @@ const AdminBookingsScreen: React.FC = () => {
   };
 
   const renderPaymentCard = (payment: PaymentRecord) => {
-    const statusColor = PAYMENT_STATUS_COLORS[payment.status as keyof typeof PAYMENT_STATUS_COLORS] || '#6b7280';
-    
+    const statusClass = PAYMENT_STATUS_COLORS[payment.status] || 'text-gray-500 bg-gray-500/10';
+
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow mb-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className="text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ backgroundColor: statusColor + '20', color: statusColor }}
-            >
-              {payment.status_display || payment.status}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">#{payment.payment_id}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: payment.email_sent ? '#10b98120' : '#f59e0b20' }}>
-            <Mail className="w-3 h-3" style={{ color: payment.email_sent ? '#10b981' : '#f59e0b' }} />
-            <span style={{ color: payment.email_sent ? '#10b981' : '#f59e0b' }}>
-              {payment.email_sent ? 'Email Sent' : 'Pending'}
-            </span>
-          </div>
-        </div>
-
-        {/* Amount */}
-        <p className="text-lg font-bold text-gray-900 dark:text-white">{payment.amount_formatted}</p>
-
-        {/* Sender */}
-        <div className="flex items-center gap-2 mb-1">
-          <User className="w-3.5 h-3.5 text-cyan-500" />
-          <span className="text-sm font-bold text-cyan-500">{payment.sender_name}</span>
-        </div>
-
-        {/* Method */}
-        <div className="flex items-center gap-2 mb-1">
-          <CreditCard className="w-3.5 h-3.5 text-cyan-500" />
-          <span className="text-xs font-semibold text-cyan-500">{payment.payment_method_name}</span>
-        </div>
-
-        {/* Reference */}
-        {payment.transaction_reference && (
-          <div className="flex items-center gap-2 mb-1">
-            <Receipt className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">Ref: {payment.transaction_reference}</span>
-          </div>
-        )}
-
-        {/* Date */}
-        <div className="flex items-center gap-1 mb-3">
-          <Calendar className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs text-gray-500 dark:text-gray-400">{formatDateTime(payment.created_at)}</span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium rounded-lg transition-colors"
-            onClick={() => { setSelectedPayment(payment); setShowPaymentModal(true); }}
-          >
-            <Eye className="w-3.5 h-3.5" />
-            Details
-          </button>
-          {payment.screenshot_url && (
-            <button
-              className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg transition-colors"
-              onClick={() => { setSelectedPayment(payment); setShowScreenshotModal(true); }}
-            >
-              <ImageIcon className="w-3.5 h-3.5" />
-              Screenshot
-            </button>
-          )}
-          {payment.whatsapp_sent && (
-            <div className="flex-1 min-w-[50px] flex items-center justify-center gap-1 py-1.5 bg-green-500/70 text-white text-xs font-medium rounded-lg">
-              <Send className="w-3.5 h-3.5" />
-              Sent
+      <div
+        key={`payment-${payment.id}`}
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusClass}`}>
+                {payment.status_display || payment.status}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                #{payment.payment_id}
+              </span>
+              {payment.whatsapp_sent && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                  WhatsApp Sent
+                </span>
+              )}
             </div>
-          )}
+
+            <h3 className="text-sm sm:text-base font-bold text-cyan-600 dark:text-cyan-400">
+              {payment.amount_formatted}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <div className="flex items-center gap-1">
+                <User className="w-3.5 h-3.5 text-cyan-500" />
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {payment.sender_name}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <span className="flex items-center gap-1">
+                <Wallet className="w-3.5 h-3.5 text-purple-500" />
+                <span>{payment.payment_method_name}</span>
+              </span>
+              {payment.transaction_reference && (
+                <span className="flex items-center gap-1">
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>Ref: {payment.transaction_reference}</span>
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-gray-400">
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {formatDateTime(payment.created_at)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => { setSelectedPayment(payment); setShowPaymentModal(true); }}
+              className="p-1.5 rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
+              title="View Details"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+
+            {payment.screenshot_url && (
+              <button
+                onClick={() => { setSelectedPayment(payment); setShowScreenshotModal(true); }}
+                className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                title="View Screenshot"
+              >
+                <Image className="w-4 h-4" />
+              </button>
+            )}
+
+            {payment.whatsapp_sent && (
+              <div className="p-1.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                <MessageCircle className="w-4 h-4" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
   };
 
-  // ============================================================================
-  // LOADING STATE
-  // ============================================================================
-
+  // Loading State
   if (loading && !refreshing) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-cyan-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
 
-  // ============================================================================
-  // MAIN RENDER
-  // ============================================================================
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {renderNotification()}
+      <Sidebar isVisible={showSidebar} onClose={() => setShowSidebar(false)} />
 
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
+      <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
               >
-                <ArrowLeft className="w-5 h-5 text-cyan-500" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Service Requests</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Service Requests</h1>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                   {activeTab === 'requests' ? `${filteredRequests.length} requests` : `${filteredPayments.length} payments`}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsDark(!isDark)}
-                className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                {isDark ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-gray-600" />}
-              </button>
-              <button
-                onClick={handleRefresh}
-                className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                <RefreshCw className="w-5 h-5 text-cyan-500" />
-              </button>
-            </div>
+            <button
+              onClick={handleRefresh}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs transition-colors self-start sm:self-auto"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1 mb-3">
+          <div className="flex gap-1 mt-3 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
             <button
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'requests'
-                  ? 'bg-cyan-500 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'bg-white dark:bg-gray-700 shadow-md text-cyan-600 dark:text-cyan-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
               onClick={() => setActiveTab('requests')}
             >
@@ -1081,31 +922,34 @@ const AdminBookingsScreen: React.FC = () => {
               Requests
             </button>
             <button
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'payments'
-                  ? 'bg-cyan-500 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'bg-white dark:bg-gray-700 shadow-md text-cyan-600 dark:text-cyan-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
               onClick={() => { setActiveTab('payments'); fetchPayments(); }}
             >
-              <CreditCard className="w-4 h-4" />
+              <Wallet className="w-4 h-4" />
               Payments
             </button>
           </div>
 
           {/* Search */}
-          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl px-3 py-2 mb-3">
-            <Search className="w-5 h-5 text-gray-400" />
+          <div className="relative mt-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400"
+              className="w-full pl-9 pr-10 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
               placeholder={activeTab === 'requests' ? "Search by name, phone, service..." : "Search by customer, payment ID..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')}>
-                <X className="w-5 h-5 text-gray-400" />
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -1114,56 +958,57 @@ const AdminBookingsScreen: React.FC = () => {
 
       {/* Filters */}
       {activeTab === 'requests' && (
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-          <div className="max-w-7xl mx-auto flex gap-2 overflow-x-auto">
-            {STATUS_OPTIONS.map((option) => {
-              const isActive = statusFilter === option.value;
-              const color = option.value === 'all' ? colors.primary : getStatusColor(option.value);
-              return (
-                <button
-                  key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                    isActive
-                      ? 'bg-cyan-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                  onClick={() => setStatusFilter(option.value)}
-                >
-                  {option.icon}
-                  {option.label}
-                  <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] ${
-                    isActive
-                      ? 'bg-white/20 text-white'
-                      : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {countByStatus(option.value)}
-                  </span>
-                </button>
-              );
-            })}
+        <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
+            <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {STATUS_OPTIONS.map((option) => {
+                const isActive = statusFilter === option.value;
+                return (
+                  <button
+                    key={`filter-${option.value}`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/30'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                    onClick={() => setStatusFilter(option.value)}
+                  >
+                    {option.icon}
+                    {option.label}
+                    <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] ${
+                      isActive
+                        ? 'bg-white/20 text-white'
+                        : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {countByStatus(option.value)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
 
-      {/* List */}
-      <div className="max-w-7xl mx-auto px-4 py-4 pb-32">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 pb-32">
         {activeTab === 'requests' ? (
           requests.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Service Requests</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Service Requests</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Customer requests will appear here</p>
             </div>
           ) : filteredRequests.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-              <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Requests Found</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Requests Found</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {searchQuery ? 'Try a different search term' : 'No requests match the current filter'}
               </p>
               {(searchQuery || statusFilter !== 'all') && (
                 <button
-                  className="mt-4 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors"
+                  className="mt-4 px-5 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-medium text-sm transition-colors"
                   onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}
                 >
                   Clear Filters
@@ -1171,25 +1016,25 @@ const AdminBookingsScreen: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="space-y-3">
               {filteredRequests.map((request) => renderRequestCard(request))}
             </div>
           )
         ) : (
           payments.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-              <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Payments</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Payments</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Payment records will appear here</p>
             </div>
           ) : filteredPayments.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-              <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Payments Found</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Payments Found</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Try a different search term</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="space-y-3">
               {filteredPayments.map((payment) => renderPaymentCard(payment))}
             </div>
           )
@@ -1198,94 +1043,84 @@ const AdminBookingsScreen: React.FC = () => {
 
       {/* Details Modal */}
       {showDetailsModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowDetailsModal(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5 text-gray-900 dark:text-white" />
-                </button>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Request Details</h3>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ backgroundColor: getStatusBgColor(selectedRequest.request_status), color: getStatusColor(selectedRequest.request_status) }}
-                    >
-                      {formatStatus(selectedRequest.request_status)}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">#{selectedRequest.request_code}</span>
-                  </div>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Request Details</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusBgColor(selectedRequest.request_status)} ${getStatusColor(selectedRequest.request_status)}`}>
+                    {formatStatus(selectedRequest.request_status)}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                    #{selectedRequest.request_code}
+                  </span>
                 </div>
               </div>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto max-h-[calc(90vh-80px)]">
-              {/* Customer Info */}
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {/* Customer Information */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Customer Information</h4>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Customer Information</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Name:</span>
-                    <button onClick={() => makePhoneCall(selectedRequest.customer_phone)}>
-                      <span className="text-sm font-bold text-cyan-500">{selectedRequest.customer_name}</span>
-                    </button>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Name:</span>
+                    <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400">{selectedRequest.customer_name}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Phone:</span>
-                    <button onClick={() => makePhoneCall(selectedRequest.customer_phone)}>
-                      <span className="text-sm font-bold text-cyan-500">{selectedRequest.customer_phone}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Phone:</span>
+                    <button onClick={() => makePhoneCall(selectedRequest.customer_phone)} className="text-sm font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
+                      {selectedRequest.customer_phone}
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Email:</span>
+                    <Mail className="w-4 h-4 text-cyan-500" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Email:</span>
                     <span className="text-sm text-gray-900 dark:text-white">{selectedRequest.customer_email || 'N/A'}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Service Info */}
+              {/* Service Details */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Service Details</h4>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Service Details</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Wrench className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Service:</span>
+                    <Zap className="w-4 h-4 text-cyan-500" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Service:</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedRequest.requested_service}</span>
                   </div>
                   {selectedRequest.request_description && (
                     <div className="flex items-start gap-2">
-                      <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
-                      <span className="text-sm text-gray-500 dark:text-gray-400 flex-1">{selectedRequest.request_description}</span>
+                      <FileText className="w-4 h-4 text-cyan-500 mt-0.5" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Description:</span>
+                      <span className="text-sm text-gray-900 dark:text-white flex-1">{selectedRequest.request_description}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Vehicle Info */}
+              {/* Vehicle Information */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Vehicle Information</h4>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Vehicle Information</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <Car className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Vehicle:</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Vehicle:</span>
                     <span className="text-sm text-gray-900 dark:text-white">{selectedRequest.vehicle_details}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Plate:</span>
+                    <CreditCard className="w-4 h-4 text-cyan-500" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Plate:</span>
                     <span className="text-sm text-gray-900 dark:text-white">{selectedRequest.license_plate}</span>
                   </div>
                 </div>
@@ -1293,43 +1128,36 @@ const AdminBookingsScreen: React.FC = () => {
 
               {/* Payment Info */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Information</h4>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Payment Information</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-2">
                   {payments.filter(p => p.service_request === selectedRequest.id).length > 0 ? (
                     payments.filter(p => p.service_request === selectedRequest.id).map((payment, index) => (
                       <div key={index} className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-purple-500" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Payment ID:</span>
-                          <span className="text-sm font-bold text-purple-500">{payment.payment_id}</span>
+                          <Wallet className="w-4 h-4 text-purple-500" />
+                          <span className="text-xs text-gray-500 dark:text-gray-400">Payment ID:</span>
+                          <span className="text-sm font-bold text-purple-600 dark:text-purple-400">{payment.payment_id}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <DollarSign className="w-4 h-4 text-green-500" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Amount:</span>
-                          <span className="text-sm font-bold text-green-500">{payment.amount_formatted}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">Amount:</span>
+                          <span className="text-sm font-bold text-green-600 dark:text-green-400">{payment.amount_formatted}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Smartphone className="w-4 h-4 text-cyan-500" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Method:</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">Method:</span>
                           <span className="text-sm text-gray-900 dark:text-white">{payment.payment_method_name}</span>
                         </div>
                         {payment.transaction_reference && (
                           <div className="flex items-center gap-2">
-                            <Receipt className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Reference:</span>
-                            <span className="text-sm text-gray-900 dark:text-white">{payment.transaction_reference}</span>
+                            <Receipt className="w-4 h-4 text-yellow-500" />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Reference:</span>
+                            <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">{payment.transaction_reference}</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Status:</span>
-                          <span className="text-sm font-bold" style={{ color: PAYMENT_STATUS_COLORS[payment.status as keyof typeof PAYMENT_STATUS_COLORS] || colors.text }}>
-                            {payment.status_display}
-                          </span>
-                        </div>
                         <button
-                          className="w-full py-2 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                           onClick={() => { setShowDetailsModal(false); setSelectedPayment(payment); setShowPaymentModal(true); }}
+                          className="w-full flex items-center justify-center gap-2 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium transition-colors"
                         >
                           <Eye className="w-4 h-4" />
                           View Payment Details
@@ -1337,34 +1165,9 @@ const AdminBookingsScreen: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <span className="text-sm text-gray-500 dark:text-gray-400">No payment records found</span>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No payment records found</p>
                   )}
                 </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 flex-wrap">
-                <button
-                  className="flex-1 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                  onClick={() => { setShowDetailsModal(false); handleEdit(selectedRequest); }}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </button>
-                <button
-                  className="flex-1 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                  onClick={() => { setShowDetailsModal(false); handleViewPayment(selectedRequest); }}
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Payment
-                </button>
-                <button
-                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                  onClick={() => { setShowDetailsModal(false); handleDelete(selectedRequest); }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
               </div>
             </div>
           </div>
@@ -1373,75 +1176,65 @@ const AdminBookingsScreen: React.FC = () => {
 
       {/* Payment Details Modal */}
       {showPaymentModal && selectedPayment && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowPaymentModal(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5 text-gray-900 dark:text-white" />
-                </button>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Payment Details</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">#{selectedPayment.payment_id}</p>
-                </div>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Payment Details</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">#{selectedPayment.payment_id}</p>
               </div>
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto max-h-[calc(90vh-80px)]">
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
               {/* Payment Status */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Status</h4>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Payment Status</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" style={{ color: PAYMENT_STATUS_COLORS[selectedPayment.status as keyof typeof PAYMENT_STATUS_COLORS] || colors.text }} />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Status:</span>
-                    <span className="text-sm font-bold" style={{ color: PAYMENT_STATUS_COLORS[selectedPayment.status as keyof typeof PAYMENT_STATUS_COLORS] || colors.text }}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_COLORS[selectedPayment.status] || 'text-gray-500 bg-gray-500/10'}`}>
                       {selectedPayment.status_display}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Created:</span>
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Created:</span>
                     <span className="text-sm text-gray-900 dark:text-white">{formatDateTime(selectedPayment.created_at)}</span>
                   </div>
                   {selectedPayment.confirmed_at && (
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Confirmed:</span>
-                      <span className="text-sm text-green-500">{formatDateTime(selectedPayment.confirmed_at)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Confirmed:</span>
+                      <span className="text-sm text-green-600 dark:text-green-400">{formatDateTime(selectedPayment.confirmed_at)}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Sender Info */}
+              {/* Sender Information */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Sender Information</h4>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Sender Information</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Name:</span>
-                    <span className="text-sm font-bold text-cyan-500">{selectedPayment.sender_name}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Name:</span>
+                    <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400">{selectedPayment.sender_name}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Phone:</span>
-                    <button onClick={() => makePhoneCall(selectedPayment.sender_phone)}>
-                      <span className="text-sm font-bold text-cyan-500">{selectedPayment.sender_phone}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Phone:</span>
+                    <button onClick={() => makePhoneCall(selectedPayment.sender_phone)} className="text-sm font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
+                      {selectedPayment.sender_phone}
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Email:</span>
+                    <Mail className="w-4 h-4 text-cyan-500" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Email:</span>
                     <span className="text-sm text-gray-900 dark:text-white">{selectedPayment.sender_email || 'N/A'}</span>
                   </div>
                 </div>
@@ -1449,23 +1242,23 @@ const AdminBookingsScreen: React.FC = () => {
 
               {/* Payment Details */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Details</h4>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Payment Details</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Amount:</span>
-                    <span className="text-lg font-bold text-green-500">{selectedPayment.amount_formatted}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Amount:</span>
+                    <span className="text-lg font-bold text-green-600 dark:text-green-400">{selectedPayment.amount_formatted}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Smartphone className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Method:</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Method:</span>
                     <span className="text-sm text-gray-900 dark:text-white">{selectedPayment.payment_method_name}</span>
                   </div>
                   {selectedPayment.transaction_reference && (
                     <div className="flex items-center gap-2">
                       <Receipt className="w-4 h-4 text-yellow-500" />
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Reference:</span>
-                      <span className="text-sm font-bold text-yellow-500">{selectedPayment.transaction_reference}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Reference:</span>
+                      <span className="text-sm font-bold text-yellow-600 dark:text-yellow-400">{selectedPayment.transaction_reference}</span>
                     </div>
                   )}
                 </div>
@@ -1474,20 +1267,20 @@ const AdminBookingsScreen: React.FC = () => {
               {/* Screenshot */}
               {selectedPayment.screenshot_url && (
                 <div className="mb-4">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Screenshot</h4>
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Screenshot</h4>
                   <button
-                    className="w-full py-3 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                     onClick={() => setShowScreenshotModal(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-colors"
                   >
-                    <ImageIcon className="w-5 h-5" />
+                    <Image className="w-4 h-4" />
                     View Screenshot
                   </button>
                 </div>
               )}
 
               <button
-                className="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors"
                 onClick={() => setShowPaymentModal(false)}
+                className="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-medium text-sm transition-colors"
               >
                 Close
               </button>
@@ -1498,139 +1291,86 @@ const AdminBookingsScreen: React.FC = () => {
 
       {/* Screenshot Modal */}
       {showScreenshotModal && selectedPayment?.screenshot_url && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Payment Screenshot</h3>
-              <button
-                onClick={() => setShowScreenshotModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <div className="p-4">
-              <img
-                src={selectedPayment.screenshot_url}
-                alt="Payment Screenshot"
-                className="w-full h-auto rounded-lg"
-                style={{ maxHeight: '70vh' }}
-              />
-            </div>
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Payment ID: {selectedPayment.payment_id}</span>
-              <button
-                className="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors"
-                onClick={() => setShowScreenshotModal(false)}
-              >
-                Close
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
+          <div className="flex items-center justify-between p-4 bg-gray-900">
+            <h3 className="text-sm font-semibold text-white">Payment Screenshot</h3>
+            <button
+              onClick={() => setShowScreenshotModal(false)}
+              className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+          <div className="flex-1 flex items-center justify-center p-4">
+            <img
+              src={selectedPayment.screenshot_url}
+              alt="Payment Screenshot"
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          </div>
+          <div className="p-4 bg-gray-900 text-center">
+            <p className="text-xs text-gray-400">Payment ID: {selectedPayment.payment_id}</p>
+            <button
+              onClick={() => setShowScreenshotModal(false)}
+              className="mt-2 px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
 
-      {/* Delete Modal */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 text-center">
-            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete Request</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Delete #{selectedRequest.request_code} from {selectedRequest.customer_name}? This cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-semibold transition-colors"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-colors"
-                onClick={deleteRequest}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmationModal
+          isOpen={true}
+          type="confirm"
+          title="Delete Request"
+          message={`Delete #${selectedRequest.request_code} from ${selectedRequest.customer_name}? This cannot be undone.`}
+          onConfirm={deleteRequest}
+          onCancel={() => setShowDeleteModal(false)}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
       )}
 
-      {/* Map Modal */}
-      {showMapModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowMapModal(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5 text-gray-900 dark:text-white" />
-                </button>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Customer Location</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">#{selectedRequest.request_code}</p>
-                </div>
-              </div>
-              {customerLocation && (
-                <button
-                  className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold rounded-lg transition-colors"
-                  onClick={() => {
-                    window.open(`https://www.google.com/maps?q=${customerLocation.latitude},${customerLocation.longitude}`, '_blank');
-                  }}
-                >
-                  Open in Google Maps
-                </button>
-              )}
-            </div>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        type={confirmationModal.type}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={confirmationModal.onCancel}
+        confirmText={confirmationModal.confirmText}
+        cancelText={confirmationModal.cancelText}
+        details={confirmationModal.details}
+      />
 
-            <div className="p-5">
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <User className="w-5 h-5 text-cyan-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <button onClick={() => makePhoneCall(selectedRequest.customer_phone)}>
-                      <p className="text-sm font-bold text-cyan-500">{selectedRequest.customer_name} • {selectedRequest.customer_phone}</p>
-                    </button>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{selectedRequest.service_location || 'Location not specified'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden h-80 relative">
-                {customerLocation ? (
-                  <iframe
-                    src={`https://www.google.com/maps?q=${customerLocation.latitude},${customerLocation.longitude}&output=embed`}
-                    className="w-full h-full"
-                    allowFullScreen
-                    loading="lazy"
-                    title="Location Map"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center">
-                      <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 dark:text-gray-400">No location data available</p>
-                      <p className="text-xs text-gray-400">This request doesn't have coordinates</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => setShowMapModal(false)}
-                className="w-full mt-4 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-xl transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Custom Animations */}
+      <style>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { transform: scale(0.9); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
-};
-
-export default AdminBookingsScreen;
+}

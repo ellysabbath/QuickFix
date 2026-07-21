@@ -7,26 +7,18 @@ import Sidebar from '../components/Sidebar';
 import {
   ArrowLeft,
   Check,
-  Camera,
   User,
   Mail,
   Phone,
-  MapPin,
   FileText,
   Shield,
   Calendar,
   CheckCircle,
-  LogOut,
   AlertTriangle,
-  ChevronDown,
-  ChevronUp,
-  Trash2,
-  Edit2,
   X,
   Loader2,
   RefreshCw,
   Save,
-  Award,
   CircleCheckBig,
   Wallet,
   CreditCard,
@@ -34,22 +26,15 @@ import {
   Building2,
   Info,
   Copy,
-  Send,
-  Image,
+  Image as ImageIcon,
   Clock,
   ArrowRight,
-  ChevronRight,
-  CheckSquare,
-  AlertCircle,
   DollarSign,
-  Building,
   PhoneCall,
-  MailCheck,
-  UserCheck,
-  FileCheck,
   QrCode,
   MessageCircle,
-  CheckCheck
+  CheckCheck,
+  Plus
 } from 'lucide-react';
 
 // API Configuration
@@ -85,14 +70,6 @@ interface PaymentMethod {
   recipientAccount?: string;
   recipientBank?: string;
   instructions: string[];
-}
-
-interface BankDetails {
-  bank_name: string;
-  account_name: string;
-  account_number: string;
-  branch: string;
-  swift_code: string;
 }
 
 interface PaymentStage {
@@ -148,15 +125,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const getButtonColors = () => {
     switch (type) {
       case 'success':
-        return 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700';
+        return 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-green-500/30';
       case 'error':
-        return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700';
+        return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-red-500/30';
       case 'confirm':
-        return 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700';
+        return 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 shadow-yellow-500/30';
       case 'info':
-        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700';
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 shadow-cyan-500/30';
       default:
-        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700';
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 shadow-cyan-500/30';
     }
   };
 
@@ -204,7 +181,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {onConfirm && (
             <button
               onClick={onConfirm}
-              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()} ${type === 'success' ? 'shadow-green-500/30' : type === 'error' ? 'shadow-red-500/30' : type === 'confirm' ? 'shadow-yellow-500/30' : 'shadow-cyan-500/30'}`}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()}`}
             >
               {confirmText}
             </button>
@@ -402,7 +379,7 @@ export default function PaymentPage() {
   }, [user, isAuthenticated]);
 
   // API Functions
-  const getAuthToken = async (): Promise<string | null> => {
+  const getAuthToken = (): string | null => {
     try {
       return localStorage.getItem('access_token');
     } catch (error) {
@@ -412,7 +389,7 @@ export default function PaymentPage() {
 
   const api = {
     getAllRequests: async (): Promise<ServiceRequest[]> => {
-      const token = await getAuthToken();
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/public-requests/`, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -425,15 +402,19 @@ export default function PaymentPage() {
 
     getUserUnpaidRequests: async (phone: string): Promise<ServiceRequest[]> => {
       const allRequests = await api.getAllRequests();
-      return allRequests.filter(req => 
-        (req.customer_phone === phone || req.customer_phone?.replace(/^\+?255/, '0') === phone.replace(/^\+?255/, '0')) &&
-        req.request_status === 'pending' && 
-        (!req.budget_maximum || req.budget_maximum === 0)
-      );
+      
+      return allRequests.filter(req => {
+        const phoneMatches = req.customer_phone === phone || 
+                            req.customer_phone?.replace(/^\+?255/, '0') === phone.replace(/^\+?255/, '0');
+        const noBudget = !req.budget_maximum || req.budget_maximum === 0 || req.budget_maximum === null;
+        const isPending = req.request_status === 'pending' || req.request_status === 'processing';
+        
+        return phoneMatches && noBudget && isPending;
+      });
     },
 
     createPaymentRecord: async (data: any): Promise<any> => {
-      const token = await getAuthToken();
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/pay/payment-records/me/`, {
         method: 'POST',
         headers: {
@@ -450,7 +431,7 @@ export default function PaymentPage() {
     },
 
     confirmPayment: async (id: number, data: any): Promise<any> => {
-      const token = await getAuthToken();
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/pay/payment-records/me/${id}/confirm/`, {
         method: 'PATCH',
         headers: {
@@ -467,7 +448,7 @@ export default function PaymentPage() {
     },
 
     notifyWhatsApp: async (id: number): Promise<any> => {
-      const token = await getAuthToken();
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/pay/payment-records/me/${id}/notify_whatsapp/`, {
         method: 'POST',
         headers: {
@@ -795,11 +776,14 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">No pending payments!</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">All your service requests have been paid for.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">
+            All your service requests have been paid for or have budgets set.
+          </p>
           <button
             onClick={() => navigate('/bookings')}
             className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-xl font-medium text-sm shadow-lg shadow-cyan-500/30 hover:shadow-xl transition-all"
           >
+            <Plus className="w-4 h-4" />
             Create New Request
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -810,7 +794,9 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
     return (
       <div>
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Select Service Request</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Choose which service to pay for</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Choose which service to pay for ({serviceRequests.length} requests without budget)
+        </p>
 
         <div className="space-y-3">
           {serviceRequests.map((item) => (
@@ -839,6 +825,11 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {item.formatted_date || 'Date not set'} at {item.formatted_time || 'Time not set'}
               </p>
+              <div className="mt-2 flex items-center gap-1">
+                <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 px-2 py-0.5 rounded-full">
+                  No Budget Set
+                </span>
+              </div>
               {selectedRequest?.id === item.id && (
                 <CheckCircle className="w-5 h-5 text-cyan-500 absolute top-3 right-3" />
               )}
@@ -1354,12 +1345,11 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
             <button
               className="w-full mt-1 py-4 border-2 border-dashed border-cyan-400 dark:border-cyan-600 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center gap-2 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors"
               onClick={() => {
-                // Simulate screenshot upload
                 setScreenshotUri('screenshot-uploaded.jpg');
                 showConfirmationModal('success', 'Screenshot Uploaded', 'Payment screenshot uploaded successfully');
               }}
             >
-              <Image className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+              <ImageIcon className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
               <span className="text-sm font-medium text-cyan-600 dark:text-cyan-400">
                 {screenshotUri ? 'Change Screenshot' : 'Upload Screenshot'}
               </span>

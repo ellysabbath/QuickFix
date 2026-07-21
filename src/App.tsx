@@ -18,6 +18,8 @@ import GaragesScreen from './dashboard/Garages';
 import MyLocationScreen from './users/Map';
 import PaymentScreen from './pages/Payment';
 import ProfileScreen from './users/Profile';
+import ServiceRequest from './dashboard/Requests';
+import Contact from './pages/Contact';
 
 // Admin Pages
 import AdminRequestsScreen from './mechanic/Mechanics';
@@ -26,6 +28,11 @@ import UserManagement from './Admin/AdminDashboard';
 import WorkshopsManagement from './Admin/AdminGarages';
 import MemberManagement from './Admin/ManageDashboard';
 import ServiceRequestsManager from './Admin/AdminMechanics';
+import AdminServices from './Admin/AdminServices';
+import MyRequests from './dashboard/MyRequest';
+import SettingsPage from './dashboard/Settings';
+import HelpPage from './dashboard/Help';
+
 
 // ============================================================
 // MAIN APP COMPONENT
@@ -81,6 +88,51 @@ function App() {
                 </>
               }
             />
+
+
+
+
+
+          <Route
+              path="/admin/services"
+              element={
+                <>
+                  <main className="flex-grow">
+                    <AdminServices />
+                  </main>
+                </>
+              }
+            />
+
+
+          <Route
+              path="/requests"
+              element={
+                <>
+                  <main className="flex-grow">
+                    <ServiceRequest />
+                  </main>
+                </>
+              }
+            />
+
+
+
+
+
+            <Route
+              path="/myrequest"
+              element={
+                <>
+                  <main className="flex-grow">
+                    <MyRequests />
+                  </main>
+                </>
+              }
+            />
+
+
+
 
 
 
@@ -229,6 +281,51 @@ function App() {
                 </>
               }
             />
+
+
+
+            <Route
+              path="/contacts"
+              element={
+                <>
+                  <main className="flex-grow">
+                    <Contact />
+                  </main>
+                </>
+              }
+            />
+
+
+
+
+
+          <Route
+              path="/settings"
+              element={
+                <>
+                  <main className="flex-grow">
+                    <SettingsPage />
+                  </main>
+                </>
+              }
+            />
+
+
+
+
+
+          <Route
+              path="/help"
+              element={
+                <>
+                  <main className="flex-grow">
+                    <HelpPage />
+                  </main>
+                </>
+              }
+            />
+
+
 
             <Route
               path="/admin/bookings"

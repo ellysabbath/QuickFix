@@ -306,7 +306,7 @@ export default function ServicesPage() {
       case 'services':
         break;
       case 'bookings':
-        window.location.href = '/bookings/list';
+        window.location.href = '/list';
         break;
       case 'map':
         window.location.href = '/map';
@@ -460,7 +460,7 @@ export default function ServicesPage() {
             className="w-full flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors group"
             onClick={() => {
               setShowProfileDropdown(false);
-              window.location.href = '/bookings/list';
+              window.location.href = '/list';
             }}
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center mr-3 transition-colors flex-shrink-0">

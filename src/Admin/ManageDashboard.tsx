@@ -1,5 +1,73 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// src/pages/admin/MemberManagement.tsx
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import Sidebar from '../components/Sidebar';
+import {
+  ArrowLeft,
+  RefreshCw,
+  Search,
+  X,
+  Eye,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Phone,
+  Mail,
+  User,
+  Shield,
+  Calendar,
+  Loader2,
+  Plus,
+  Trash2,
+  Edit2,
+  Power,
+  PowerOff,
+  Check,
+  XCircle,
+  Users,
+  UserPlus,
+  UserCheck,
+  UserX,
+  Building2,
+  Wrench,
+  PersonStanding,
+ 
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  MoreVertical,
+  Copy,
+  Send,
+  MessageCircle,
+  Star,
+  Award,
+  Briefcase,
+  TrendingUp,
+  BarChart3,
+  Activity,
+  Filter,
+  Grid,
+  List,
+  EyeOff,
+  UserCog,
+  Key,
+  Lock,
+  Unlock,
+  ShieldCheck,
+  ShieldAlert,
+  Crown,
+  BadgeCheck,
+  UserMinus,
+  UserPlus as UserPlusIcon,
+  Users2,
+  Settings
+} from 'lucide-react';
+
+// API Configuration
+const API_BASE_URL = 'http://127.0.0.1:8000/api/members';
 
 // Types
 interface Member {
@@ -25,183 +93,184 @@ interface StatsData {
   inactive: number;
 }
 
-// Role options
-const ROLE_OPTIONS = [
-  { value: 'admin', label: 'Administrator', color: '#ef4444' },
-  { value: 'garage_owner', label: 'Garage Owner', color: '#10b981' },
-  { value: 'mechanic', label: 'Mechanic', color: '#f59e0b' },
-  { value: 'customer', label: 'Customer', color: '#0891b2' },
-];
-
-// Mock data
-const mockMembers: Member[] = [
-  {
-    id: 1,
-    mobile_number: '+255 712 345 678',
-    email: 'admin@example.com',
-    full_name: 'Admin User',
-    role: 'admin',
-    role_display: 'Administrator',
-    is_active: true,
-    is_staff: true,
-    date_joined: new Date().toISOString(),
-    last_login: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    mobile_number: '+255 712 345 678',
-    email: 'john@example.com',
-    full_name: 'John Doe',
-    role: 'customer',
-    role_display: 'Customer',
-    is_active: true,
-    is_staff: false,
-    date_joined: new Date().toISOString(),
-    last_login: null,
-  },
-  {
-    id: 3,
-    mobile_number: '+255 713 456 789',
-    email: 'jane@example.com',
-    full_name: 'Jane Smith',
-    role: 'mechanic',
-    role_display: 'Mechanic',
-    is_active: true,
-    is_staff: false,
-    date_joined: new Date().toISOString(),
-    last_login: new Date().toISOString(),
-  },
-  {
-    id: 4,
-    mobile_number: '+255 714 567 890',
-    email: 'bob@example.com',
-    full_name: 'Bob Johnson',
-    role: 'garage_owner',
-    role_display: 'Garage Owner',
-    is_active: false,
-    is_staff: false,
-    date_joined: new Date().toISOString(),
-    last_login: null,
-  },
-];
-
-const mockStats: StatsData = {
-  customer: 10,
-  mechanic: 7,
-  garage_owner: 5,
-  admin: 2,
-  total: 24,
-  active: 18,
-  inactive: 6,
-};
-
-// Success Modal
-const SuccessModal: React.FC<{
-  visible: boolean;
+// Confirmation Modal Component
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  type: 'success' | 'error' | 'confirm' | 'info';
+  title: string;
   message: string;
-  onClose: () => void;
-}> = ({ visible, message, onClose }) => {
-  useEffect(() => {
-    if (visible) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 2500);
-      return () => clearTimeout(timer);
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  details?: { label: string; value: string }[];
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  isOpen,
+  type,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  details
+}) => {
+  if (!isOpen) return null;
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success':
+        return <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-green-500" />;
+      case 'error':
+        return <AlertTriangle className="w-14 h-14 sm:w-16 sm:h-16 text-red-500" />;
+      case 'confirm':
+        return <AlertTriangle className="w-14 h-14 sm:w-16 sm:h-16 text-yellow-500" />;
+      case 'info':
+        return <Info className="w-14 h-14 sm:w-16 sm:h-16 text-cyan-500" />;
+      default:
+        return <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-cyan-500" />;
     }
-  }, [visible]);
+  };
 
-  if (!visible) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl transform transition-all duration-300 scale-100">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-green-500/30 animate-pulse">
-          <span className="text-white text-5xl font-light">✓</span>
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Success!</h3>
-        <p className="text-gray-600 dark:text-gray-400">{message}</p>
-      </div>
-    </div>
-  );
-};
-
-// Confirmation Modal
-const ConfirmationModal: React.FC<{
-  visible: boolean;
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isDestructive?: boolean;
-}> = ({ visible, message, onConfirm, onCancel, isDestructive = false }) => {
-  if (!visible) return null;
+  const getButtonColors = () => {
+    switch (type) {
+      case 'success':
+        return 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700';
+      case 'error':
+        return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700';
+      case 'confirm':
+        return 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700';
+      case 'info':
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700';
+      default:
+        return 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700';
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl max-w-md w-full p-8 shadow-2xl transform transition-all duration-300 scale-100">
-        <div className="text-center mb-6">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
-            isDestructive 
-              ? 'bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30' 
-              : 'bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30'
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 sm:p-8 w-full max-w-md text-center shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-center mb-4">
+          <div className={`p-3 rounded-full ${
+            type === 'success' ? 'bg-green-100 dark:bg-green-900/30' :
+            type === 'error' ? 'bg-red-100 dark:bg-red-900/30' :
+            type === 'confirm' ? 'bg-yellow-100 dark:bg-yellow-900/30' :
+            'bg-cyan-100 dark:bg-cyan-900/30'
           }`}>
-            <span className={`text-4xl font-bold ${isDestructive ? 'text-red-500' : 'text-cyan-500'}`}>
-              {isDestructive ? '!' : '?'}
-            </span>
+            {getIcon()}
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {isDestructive ? 'Delete Member' : 'Confirm Action'}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{message}</p>
         </div>
+        
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {message}
+        </p>
 
-        <div className="flex gap-3 mt-4">
-          <button
-            className="flex-1 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-2xl text-gray-700 dark:text-gray-300 font-semibold transition-all duration-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-          <button
-            className={`flex-1 py-3.5 rounded-2xl text-white font-semibold transition-all duration-200 shadow-lg ${
-              isDestructive 
-                ? 'bg-gradient-to-r from-red-500 to-red-600 hover:shadow-red-500/30' 
-                : 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:shadow-cyan-500/30'
-            }`}
-            onClick={onConfirm}
-          >
-            {isDestructive ? 'Delete' : 'Confirm'}
-          </button>
+        {details && details.length > 0 && (
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4 text-left w-full">
+            {details.map((detail, index) => (
+              <div key={index} className="flex justify-between py-1 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                <span className="text-xs text-gray-500 dark:text-gray-400">{detail.label}</span>
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{detail.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <div className="flex gap-3">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="flex-1 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-semibold text-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400"
+            >
+              {cancelText}
+            </button>
+          )}
+          {onConfirm && (
+            <button
+              onClick={onConfirm}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()} ${type === 'success' ? 'shadow-green-500/30' : type === 'error' ? 'shadow-red-500/30' : type === 'confirm' ? 'shadow-yellow-500/30' : 'shadow-cyan-500/30'}`}
+            >
+              {confirmText}
+            </button>
+          )}
+          {!onConfirm && type === 'success' && (
+            <button
+              onClick={onCancel}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg ${getButtonColors()}`}
+            >
+              OK
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-const MemberManagement: React.FC = () => {
+const ROLE_OPTIONS = [
+  { value: 'admin', label: 'Administrator', icon: <Shield className="w-4 h-4" />, color: '#ef4444' },
+  { value: 'garage_owner', label: 'Garage Owner', icon: <Building2 className="w-4 h-4" />, color: '#10b981' },
+  { value: 'mechanic', label: 'Mechanic', icon: <Wrench className="w-4 h-4" />, color: '#f59e0b' },
+  { value: 'customer', label: 'Customer', icon: <User className="w-4 h-4" />, color: '#0891b2' },
+];
+
+const ROLE_COLORS: Record<string, string> = {
+  admin: '#ef4444',
+  garage_owner: '#10b981',
+  mechanic: '#f59e0b',
+  customer: '#0891b2',
+};
+
+const ROLE_ICONS: Record<string, React.ReactNode> = {
+  admin: <Shield className="w-3.5 h-3.5" />,
+  garage_owner: <Building2 className="w-3.5 h-3.5" />,
+  mechanic: <Wrench className="w-3.5 h-3.5" />,
+  customer: <User className="w-3.5 h-3.5" />,
+};
+
+export default function MemberManagement() {
   const navigate = useNavigate();
+  const { user } = useUser();
+  const [showSidebar, setShowSidebar] = useState(false);
 
   // State
-  const [members, setMembers] = useState<Member[]>(mockMembers);
-  const [filteredMembers, setFilteredMembers] = useState<Member[]>(mockMembers);
-  const [stats, setStats] = useState<StatsData | null>(mockStats);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [actionModalVisible, setActionModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [successModalVisible, setSuccessModalVisible] = useState(false);
-  const [actionType, setActionType] = useState<
-    'delete' | 'deactivate' | 'activate' | 'role_change' | 'edit' | null
-  >(null);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [actionType, setActionType] = useState<'delete' | 'deactivate' | 'activate' | 'role_change' | null>(null);
   const [newRole, setNewRole] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState(false);
+
+  // Confirmation Modal
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'confirm' | 'info';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    onCancel?: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    details?: { label: string; value: string }[];
+  }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   // Create form state
   const [createForm, setCreateForm] = useState({
@@ -221,26 +290,354 @@ const MemberManagement: React.FC = () => {
     role: 'customer',
   });
 
-  // Get role color
-  const getRoleColor = (role: string): string => {
-    switch (role) {
-      case 'admin': return '#ef4444';
-      case 'garage_owner': return '#10b981';
-      case 'mechanic': return '#f59e0b';
-      case 'customer': return '#0891b2';
-      default: return '#6b7280';
+  const showConfirmationModal = (
+    type: 'success' | 'error' | 'confirm' | 'info',
+    title: string,
+    message: string,
+    onConfirm?: () => void,
+    onCancel?: () => void,
+    confirmText?: string,
+    cancelText?: string,
+    details?: { label: string; value: string }[]
+  ) => {
+    setConfirmationModal({
+      isOpen: true,
+      type,
+      title,
+      message,
+      onConfirm,
+      onCancel: onCancel || (() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))),
+      confirmText,
+      cancelText,
+      details,
+    });
+  };
+
+  // Fetch members from API
+  const fetchMembers = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch(`${API_BASE_URL}/`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch members: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        let membersList = data.members;
+        
+        if (selectedRoleFilter !== 'all') {
+          membersList = membersList.filter((m: Member) => m.role === selectedRoleFilter);
+        }
+        
+        setMembers(membersList);
+        setFilteredMembers(membersList);
+      } else {
+        setMembers([]);
+        setFilteredMembers([]);
+      }
+      
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Network error. Please check your connection.';
+      showConfirmationModal('error', 'Error', errorMsg);
+      setMembers([]);
+      setFilteredMembers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedRoleFilter]);
+
+  // Fetch statistics
+  const fetchStats = useCallback(async () => {
+    try {
+      setIsLoadingStats(true);
+      
+      const response = await fetch(`${API_BASE_URL}/statistics/`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.statistics);
+        }
+      }
+    } catch (error) {
+      // Silent fail
+    } finally {
+      setIsLoadingStats(false);
+    }
+  }, []);
+
+  // Load initial data
+  useEffect(() => {
+    fetchMembers();
+    fetchStats();
+  }, [fetchMembers, fetchStats]);
+
+  // Filter members based on search
+  useEffect(() => {
+    let filtered = [...members];
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(member => 
+        member.mobile_number.toLowerCase().includes(query) ||
+        (member.full_name?.toLowerCase() || '').includes(query) ||
+        (member.email?.toLowerCase() || '').includes(query)
+      );
+    }
+    
+    setFilteredMembers(filtered);
+  }, [members, searchQuery]);
+
+  // Handle refresh
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchMembers(), fetchStats()]);
+    setRefreshing(false);
+  };
+
+  // Create new member
+  const handleCreateMember = async () => {
+    if (!createForm.mobile_number) {
+      showConfirmationModal('error', 'Error', 'Mobile number is required');
+      return;
+    }
+    
+    if (!createForm.password) {
+      showConfirmationModal('error', 'Error', 'Password is required');
+      return;
+    }
+    
+    if (createForm.password !== createForm.confirm_password) {
+      showConfirmationModal('error', 'Error', 'Passwords do not match');
+      return;
+    }
+    
+    if (createForm.password.length < 6) {
+      showConfirmationModal('error', 'Error', 'Password must be at least 6 characters');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/create/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createForm),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showConfirmationModal('success', 'Success!', 'Member created successfully!');
+        setShowCreateModal(false);
+        setCreateForm({
+          mobile_number: '',
+          email: '',
+          full_name: '',
+          role: 'customer',
+          password: '',
+          confirm_password: '',
+        });
+        fetchMembers();
+        fetchStats();
+      } else {
+        const errors = data.errors || data.error;
+        showConfirmationModal('error', 'Error', typeof errors === 'object' ? JSON.stringify(errors) : errors);
+      }
+    } catch (error) {
+      showConfirmationModal('error', 'Error', 'Failed to create member');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Get role badge class
-  const getRoleBadgeClass = (role: string): string => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      case 'garage_owner': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-      case 'mechanic': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
-      case 'customer': return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700/30 dark:text-gray-400';
+  // Update member
+  const handleUpdateMember = async () => {
+    if (!selectedMember) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/update/${selectedMember.id}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showConfirmationModal('success', 'Success!', 'Member updated successfully!');
+        setShowEditModal(false);
+        fetchMembers();
+        fetchStats();
+      } else {
+        showConfirmationModal('error', 'Error', JSON.stringify(data.errors));
+      }
+    } catch (error) {
+      showConfirmationModal('error', 'Error', 'Failed to update member');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Delete member
+  const handleDeleteMember = async () => {
+    if (!selectedMember) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/delete/${selectedMember.id}/`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showConfirmationModal('success', 'Deleted!', 'Member deleted successfully!');
+        setShowModal(false);
+        fetchMembers();
+        fetchStats();
+      } else {
+        showConfirmationModal('error', 'Error', data.error || 'Failed to delete member');
+      }
+    } catch (error) {
+      showConfirmationModal('error', 'Error', 'Failed to delete member');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Toggle member status
+  const handleToggleStatus = async () => {
+    if (!selectedMember) return;
+    
+    const isActive = selectedMember.is_active;
+    const action = isActive ? 'deactivate' : 'activate';
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/${action}/${selectedMember.id}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showConfirmationModal('success', 'Success!', `Member ${action}d successfully!`);
+        setShowModal(false);
+        fetchMembers();
+        fetchStats();
+      } else {
+        showConfirmationModal('error', 'Error', data.error || `Failed to ${action} member`);
+      }
+    } catch (error) {
+      showConfirmationModal('error', 'Error', `Failed to ${action} member`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Change member role
+  const handleChangeRole = async () => {
+    if (!selectedMember || !newRole) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/update/${selectedMember.id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showConfirmationModal('success', 'Success!', `Role changed to ${newRole}!`);
+        setShowModal(false);
+        fetchMembers();
+        fetchStats();
+      } else {
+        showConfirmationModal('error', 'Error', JSON.stringify(data.errors));
+      }
+    } catch (error) {
+      showConfirmationModal('error', 'Error', 'Failed to change role');
+    } finally {
+      setIsLoading(false);
+      setNewRole('');
+    }
+  };
+
+  // Execute action
+  const executeAction = async () => {
+    if (actionType === 'delete') {
+      await handleDeleteMember();
+    } else if (actionType === 'activate' || actionType === 'deactivate') {
+      await handleToggleStatus();
+    } else if (actionType === 'role_change') {
+      await handleChangeRole();
+    }
+  };
+
+  // Show action confirmation
+  const showActionConfirmation = (type: 'delete' | 'deactivate' | 'activate' | 'role_change', member: Member) => {
+    setSelectedMember(member);
+    setActionType(type);
+    if (type === 'role_change') {
+      setNewRole('');
+    }
+    
+    const titles = {
+      delete: 'Delete Member',
+      deactivate: 'Deactivate Member',
+      activate: 'Activate Member',
+      role_change: 'Change Member Role',
+    };
+    
+    const messages = {
+      delete: 'Are you sure you want to permanently delete this member? This action cannot be undone.',
+      deactivate: 'Are you sure you want to deactivate this member? They will not be able to log in.',
+      activate: 'Are you sure you want to activate this member? They will be able to log in again.',
+      role_change: `Change role from ${member.role_display} to a new role? This will affect their permissions.`,
+    };
+    
+    showConfirmationModal(
+      'confirm',
+      titles[type],
+      messages[type],
+      executeAction,
+      undefined,
+      type === 'delete' ? 'Delete' : type === 'deactivate' ? 'Deactivate' : type === 'activate' ? 'Activate' : 'Change',
+      'Cancel'
+    );
+  };
+
+  // Open edit modal
+  const openEditModal = (member: Member) => {
+    setSelectedMember(member);
+    setEditForm({
+      full_name: member.full_name || '',
+      email: member.email || '',
+      mobile_number: member.mobile_number,
+      role: member.role,
+    });
+    setShowEditModal(true);
   };
 
   // Get user initials
@@ -270,270 +667,179 @@ const MemberManagement: React.FC = () => {
     }
   };
 
-  // Filter members
-  useEffect(() => {
-    let filtered = [...members];
-    
-    if (selectedRoleFilter !== 'all') {
-      filtered = filtered.filter(m => m.role === selectedRoleFilter);
-    }
-    
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(member => 
-        member.mobile_number.toLowerCase().includes(query) ||
-        (member.full_name?.toLowerCase() || '').includes(query) ||
-        (member.email?.toLowerCase() || '').includes(query)
+  // Render stats
+  const renderStats = () => {
+    if (isLoadingStats) {
+      return (
+        <div className="flex justify-center py-4">
+          <Loader2 className="w-6 h-6 text-cyan-500 animate-spin" />
+        </div>
       );
     }
     
-    setFilteredMembers(filtered);
-  }, [members, searchQuery, selectedRoleFilter]);
-
-  // Handle refresh
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setRefreshing(false);
-  };
-
-  // Handle create member
-  const handleCreateMember = async () => {
-    if (!createForm.mobile_number) {
-      alert('Mobile number is required');
-      return;
-    }
-    if (!createForm.password) {
-      alert('Password is required');
-      return;
-    }
-    if (createForm.password !== createForm.confirm_password) {
-      alert('Passwords do not match');
-      return;
-    }
-    if (createForm.password.length < 6) {
-      alert('Password must be at least 6 characters');
-      return;
-    }
+    if (!stats) return null;
     
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const statItems = [
+      { label: 'Total', value: stats.total, color: 'bg-cyan-500', icon: <Users className="w-4 h-4" /> },
+      { label: 'Active', value: stats.active, color: 'bg-green-500', icon: <UserCheck className="w-4 h-4" /> },
+      { label: 'Inactive', value: stats.inactive, color: 'bg-red-500', icon: <UserX className="w-4 h-4" /> },
+      { label: 'Customers', value: stats.customer, color: 'bg-blue-500', icon: <User className="w-4 h-4" /> },
+      { label: 'Mechanics', value: stats.mechanic, color: 'bg-yellow-500', icon: <Wrench className="w-4 h-4" /> },
+      { label: 'Garage Owners', value: stats.garage_owner, color: 'bg-emerald-500', icon: <Building2 className="w-4 h-4" /> },
+      { label: 'Admins', value: stats.admin, color: 'bg-red-500', icon: <Shield className="w-4 h-4" /> },
+    ];
 
-    const newMember: Member = {
-      id: Date.now(),
-      mobile_number: createForm.mobile_number,
-      email: createForm.email || null,
-      full_name: createForm.full_name || '',
-      role: createForm.role as any,
-      role_display: ROLE_OPTIONS.find(r => r.value === createForm.role)?.label || 'Customer',
-      is_active: true,
-      is_staff: createForm.role === 'admin',
-      date_joined: new Date().toISOString(),
-      last_login: null,
-    };
-
-    setMembers(prev => [newMember, ...prev]);
-    setSuccessMessage('Member created successfully!');
-    setSuccessModalVisible(true);
-    setCreateModalVisible(false);
-    setCreateForm({
-      mobile_number: '',
-      email: '',
-      full_name: '',
-      role: 'customer',
-      password: '',
-      confirm_password: '',
-    });
-    setIsLoading(false);
-  };
-
-  // Handle update member
-  const handleUpdateMember = async () => {
-    if (!selectedMember) return;
-    
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    setMembers(prev => prev.map(m =>
-      m.id === selectedMember.id ? { ...m, ...editForm } : m
-    ));
-    
-    setSuccessMessage('Member updated successfully!');
-    setSuccessModalVisible(true);
-    setEditModalVisible(false);
-    setIsLoading(false);
-  };
-
-  // Handle delete member
-  const handleDeleteMember = async () => {
-    if (!selectedMember) return;
-    
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    setMembers(prev => prev.filter(m => m.id !== selectedMember.id));
-    setSuccessMessage('Member deleted successfully!');
-    setSuccessModalVisible(true);
-    setModalVisible(false);
-    setActionModalVisible(false);
-    setIsLoading(false);
-  };
-
-  // Handle toggle status
-  const handleToggleStatus = async () => {
-    if (!selectedMember) return;
-    
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    setMembers(prev => prev.map(m =>
-      m.id === selectedMember.id ? { ...m, is_active: !m.is_active } : m
-    ));
-    
-    const action = selectedMember.is_active ? 'deactivated' : 'activated';
-    setSuccessMessage(`Member ${action} successfully!`);
-    setSuccessModalVisible(true);
-    setModalVisible(false);
-    setActionModalVisible(false);
-    setIsLoading(false);
-  };
-
-  // Handle change role
-  const handleChangeRole = async () => {
-    if (!selectedMember || !newRole) return;
-    
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const roleDisplay = ROLE_OPTIONS.find(r => r.value === newRole)?.label || newRole;
-    setMembers(prev => prev.map(m =>
-      m.id === selectedMember.id ? { ...m, role: newRole as any, role_display: roleDisplay } : m
-    ));
-    
-    setSuccessMessage(`Role changed to ${roleDisplay}!`);
-    setSuccessModalVisible(true);
-    setModalVisible(false);
-    setActionModalVisible(false);
-    setNewRole('');
-    setIsLoading(false);
-  };
-
-  // Show action confirmation
-  const showActionConfirmation = (type: 'delete' | 'deactivate' | 'activate' | 'role_change', member: Member) => {
-    setSelectedMember(member);
-    setActionType(type);
-    if (type === 'role_change') {
-      setNewRole('');
-    }
-    setActionModalVisible(true);
-  };
-
-  // Execute action
-  const executeAction = async () => {
-    if (actionType === 'delete') {
-      await handleDeleteMember();
-    } else if (actionType === 'activate' || actionType === 'deactivate') {
-      await handleToggleStatus();
-    } else if (actionType === 'role_change') {
-      await handleChangeRole();
-    }
-  };
-
-  // Open edit modal
-  const openEditModal = (member: Member) => {
-    setSelectedMember(member);
-    setEditForm({
-      full_name: member.full_name || '',
-      email: member.email || '',
-      mobile_number: member.mobile_number,
-      role: member.role,
-    });
-    setEditModalVisible(true);
-  };
-
-  // Render stat card
-  const StatCard: React.FC<{ label: string; value: number; color: string; icon: string }> = ({ label, value, color, icon }) => (
-    <div className={`${color} rounded-2xl p-4 min-w-[120px] flex-1 shadow-lg`}>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-          <span className="text-white text-lg font-bold">{icon}</span>
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-white">{value}</p>
-          <p className="text-xs text-white/80">{label}</p>
-        </div>
+    return (
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        {statItems.map((stat) => (
+          <div
+            key={stat.label}
+            className={`flex-shrink-0 w-28 p-3 rounded-xl text-white ${stat.color}`}
+          >
+            <div className="flex items-center gap-1.5 mb-1">
+              {stat.icon}
+              <span className="text-[10px] font-medium opacity-90">{stat.label}</span>
+            </div>
+            <p className="text-xl font-bold">{stat.value}</p>
+          </div>
+        ))}
       </div>
+    );
+  };
+
+  // Render filter tabs
+  const renderFilterTabs = () => (
+    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+      <button
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+          selectedRoleFilter === 'all'
+            ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/30'
+            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+        }`}
+        onClick={() => setSelectedRoleFilter('all')}
+      >
+        <Users className="w-3.5 h-3.5" />
+        All
+      </button>
+      
+      {ROLE_OPTIONS.map(role => (
+        <button
+          key={role.value}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+            selectedRoleFilter === role.value
+              ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/30'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+          }`}
+          onClick={() => setSelectedRoleFilter(role.value)}
+        >
+          {role.icon}
+          {role.label}
+        </button>
+      ))}
     </div>
   );
 
   // Render member item
-  const renderMemberItem = (member: Member) => {
-    const initials = getUserInitials(member);
-    const displayName = getDisplayName(member);
-    const roleColor = getRoleColor(member.role);
-    const roleBadgeClass = getRoleBadgeClass(member.role);
+  const renderMemberItem = (item: Member) => {
+    const initials = getUserInitials(item);
+    const displayName = getDisplayName(item);
+    const roleColor = ROLE_COLORS[item.role] || '#6b7280';
+    const roleIcon = ROLE_ICONS[item.role] || <User className="w-3.5 h-3.5" />;
 
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0`} style={{ backgroundColor: roleColor + '20' }}>
-              <span className="text-base font-bold" style={{ color: roleColor }}>{initials}</span>
+      <div
+        key={item.id}
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all"
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: roleColor + '20' }}
+          >
+            <span className="text-sm font-bold" style={{ color: roleColor }}>{initials}</span>
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-gray-900 dark:text-white truncate">{displayName}</span>
+              <span
+                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-medium"
+                style={{ backgroundColor: roleColor + '20', color: roleColor }}
+              >
+                {roleIcon}
+                {item.role_display}
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-base font-semibold text-gray-900 dark:text-white">{displayName}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleBadgeClass}`}>
-                  {member.role_display}
+            
+            <p className="text-xs text-gray-500 dark:text-gray-400">{item.mobile_number}</p>
+            
+            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+              <div className="flex items-center gap-1">
+                <Mail className="w-3 h-3 text-gray-400" />
+                <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px]">
+                  {item.email || 'No email'}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{member.mobile_number}</p>
-              <div className="flex items-center gap-3 mt-1">
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <span>✉</span>
-                  <span className="truncate max-w-[120px]">{member.email || 'No email'}</span>
-                </div>
-                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-                  member.is_active 
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${member.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
-                  {member.is_active ? 'Active' : 'Inactive'}
-                </div>
-              </div>
+              
+              <span className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-medium ${
+                item.is_active
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                  : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${item.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                {item.is_active ? 'Active' : 'Inactive'}
+              </span>
             </div>
+            
+            <p className="text-[10px] text-gray-400 mt-1">
+              Joined {formatDate(item.date_joined)}
+            </p>
           </div>
-          <div className="flex gap-1.5 flex-shrink-0 ml-2">
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <button
+            onClick={() => openEditModal(item)}
+            className="flex items-center gap-1 px-2.5 py-1 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg text-[10px] font-medium hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
+          >
+            <Edit2 className="w-3 h-3" />
+            Edit
+          </button>
+          
+          {item.is_active ? (
             <button
-              className="p-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-900/20 dark:hover:bg-cyan-900/30 transition-colors"
-              onClick={() => openEditModal(member)}
-              title="Edit"
+              onClick={() => showActionConfirmation('deactivate', item)}
+              className="flex items-center gap-1 px-2.5 py-1 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-lg text-[10px] font-medium hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
             >
-              <span className="text-cyan-500">✏</span>
+              <PowerOff className="w-3 h-3" />
+              Deactivate
             </button>
+          ) : (
             <button
-              className="p-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/30 transition-colors"
-              onClick={() => showActionConfirmation(member.is_active ? 'deactivate' : 'activate', member)}
-              title={member.is_active ? 'Deactivate' : 'Activate'}
+              onClick={() => showActionConfirmation('activate', item)}
+              className="flex items-center gap-1 px-2.5 py-1 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-[10px] font-medium hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
             >
-              <span className="text-orange-500">⏻</span>
+              <Power className="w-3 h-3" />
+              Activate
             </button>
-            <button
-              className="p-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 transition-colors"
-              onClick={() => showActionConfirmation('role_change', member)}
-              title="Change Role"
-            >
-              <span className="text-purple-500">⇄</span>
-            </button>
-            <button
-              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 transition-colors"
-              onClick={() => showActionConfirmation('delete', member)}
-              title="Delete"
-            >
-              <span className="text-red-500">🗑</span>
-            </button>
-          </div>
+          )}
+          
+          <button
+            onClick={() => showActionConfirmation('role_change', item)}
+            className="flex items-center gap-1 px-2.5 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg text-[10px] font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+          >
+            <SwapHorizontal className="w-3 h-3" />
+            Role
+          </button>
+          
+          <button
+            onClick={() => showActionConfirmation('delete', item)}
+            className="flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-[10px] font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+          >
+            <Trash2 className="w-3 h-3" />
+            Delete
+          </button>
         </div>
       </div>
     );
@@ -542,275 +848,236 @@ const MemberManagement: React.FC = () => {
   // Loading state
   if (isLoading && members.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 font-medium">Loading members...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Loading members...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar isVisible={showSidebar} onClose={() => setShowSidebar(false)} />
+
       {/* Header */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-xl transition-all duration-200 shadow-md hover:shadow-cyan-500/30"
-              >
-                ← Back
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-cyan-400 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
-                  Member Management
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Manage users and roles</p>
-              </div>
-            </div>
+      <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setIsDark(!isDark)}
-                className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all duration-200"
+                onClick={() => navigate('/dashboard')}
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
               >
-                {isDark ? '☀️ Light' : '🌙 Dark'}
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Member Management</h1>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                  Manage users and roles
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
               </button>
               <button
-                onClick={() => setCreateModalVisible(true)}
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white text-2xl font-bold flex items-center justify-center shadow-lg shadow-cyan-500/30 transition-all duration-200 hover:scale-105"
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium transition-colors shadow-md shadow-cyan-500/30"
               >
-                +
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add</span>
               </button>
             </div>
           </div>
 
-          {/* Search */}
-          <div className="flex items-center gap-3 bg-white dark:bg-gray-700/50 rounded-2xl px-5 py-3 mb-4 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-            <span className="text-gray-400 text-lg">🔍</span>
+          {/* Search Bar */}
+          <div className="relative mt-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 font-medium"
+              className="w-full pl-9 pr-10 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
               placeholder="Search by name, phone, or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 text-lg font-bold">
-                ✕
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Stats */}
-      {stats && (
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard label="Total" value={stats.total} color="bg-gradient-to-br from-cyan-500 to-cyan-600" icon="#" />
-            <StatCard label="Active" value={stats.active} color="bg-gradient-to-br from-green-500 to-green-600" icon="✓" />
-            <StatCard label="Inactive" value={stats.inactive} color="bg-gradient-to-br from-red-500 to-red-600" icon="✕" />
-            <StatCard label="Admins" value={stats.admin} color="bg-gradient-to-br from-purple-500 to-purple-600" icon="★" />
-          </div>
+      {/* Stats Section */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
+          {renderStats()}
         </div>
-      )}
+      </div>
 
       {/* Filter Tabs */}
-      <div className="max-w-7xl mx-auto px-4 pb-4">
-        <div className="flex gap-2 overflow-x-auto">
-          <button
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-              selectedRoleFilter === 'all'
-                ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/30'
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-            onClick={() => setSelectedRoleFilter('all')}
-          >
-            All
-          </button>
-          {ROLE_OPTIONS.map(role => (
-            <button
-              key={role.value}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                selectedRoleFilter === role.value
-                  ? `bg-${role.color}20 text-${role.color} shadow-md`
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-              style={{
-                backgroundColor: selectedRoleFilter === role.value ? role.color + '20' : '',
-                color: selectedRoleFilter === role.value ? role.color : '',
-              }}
-              onClick={() => setSelectedRoleFilter(role.value)}
-            >
-              {role.label}
-            </button>
-          ))}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
+          {renderFilterTabs()}
         </div>
       </div>
 
       {/* Member Count */}
-      <div className="max-w-7xl mx-auto px-4 pb-3 flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Showing <span className="font-semibold text-gray-700 dark:text-gray-300">{filteredMembers.length}</span> of{' '}
-          <span className="font-semibold text-gray-700 dark:text-gray-300">{members.length}</span> members
-        </p>
-        <button onClick={handleRefresh} disabled={refreshing} className="text-cyan-500 hover:text-cyan-600 transition-colors font-medium">
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </button>
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex justify-between items-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Showing <span className="font-semibold text-gray-900 dark:text-white">{filteredMembers.length}</span> of{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">{members.length}</span> members
+          </p>
+        </div>
       </div>
 
-      {/* Member List */}
-      <div className="max-w-7xl mx-auto px-4 pb-32">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 pb-32">
         {filteredMembers.length === 0 ? (
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-12 text-center border border-gray-200/50 dark:border-gray-700/50">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <span className="text-5xl font-bold text-gray-400 dark:text-gray-500">👤</span>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              {searchQuery ? 'No members found' : 'No members available'}
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {searchQuery ? 'Try a different search term' : 'Add your first member to get started'}
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">No members found</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {searchQuery ? 'Try a different search term' : 'Tap + to add your first member'}
             </p>
-            {!searchQuery && (
-              <button
-                onClick={() => setCreateModalVisible(true)}
-                className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-2xl shadow-lg shadow-cyan-500/30 transition-all duration-200 hover:scale-105"
-              >
-                + Add First Member
-              </button>
-            )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredMembers.map((member) => renderMemberItem(member))}
           </div>
         )}
       </div>
 
       {/* Create Modal */}
-      {createModalVisible && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-t-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl animate-slide-up">
-            <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 p-6 flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl font-bold text-white">Create Member</h3>
-                <p className="text-sm text-white/90 mt-1">Add a new member to the system</p>
-              </div>
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Create Member</h2>
               <button
-                onClick={() => setCreateModalVisible(false)}
-                className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-2xl font-bold transition-all duration-200 flex items-center justify-center"
+                onClick={() => setShowCreateModal(false)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                ✕
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-130px)]">
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Mobile Number <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="text"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
-                    placeholder="+255 712 345 678"
+                    type="tel"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
+                    placeholder="+1234567890"
                     value={createForm.mobile_number}
-                    onChange={(e) => setCreateForm({ ...createForm, mobile_number: e.target.value })}
+                    onChange={(e) => setCreateForm({...createForm, mobile_number: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">Email</label>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Email</label>
                   <input
                     type="email"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                     placeholder="user@example.com"
                     value={createForm.email}
-                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                    onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">Full Name</label>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Full Name</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                     placeholder="Full Name"
                     value={createForm.full_name}
-                    onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })}
+                    onChange={(e) => setCreateForm({...createForm, full_name: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">Role</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Role</label>
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {ROLE_OPTIONS.map(role => (
                       <button
                         key={role.value}
-                        className={`px-4 py-3 rounded-2xl border-2 transition-all duration-200 font-medium ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                           createForm.role === role.value
-                            ? `border-${role.color} bg-${role.color}20 text-${role.color}`
-                            : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300'
+                            ? 'text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                         }`}
                         style={{
-                          borderColor: createForm.role === role.value ? role.color : '',
-                          backgroundColor: createForm.role === role.value ? role.color + '20' : '',
-                          color: createForm.role === role.value ? role.color : '',
+                          backgroundColor: createForm.role === role.value ? role.color : undefined
                         }}
-                        onClick={() => setCreateForm({ ...createForm, role: role.value as any })}
+                        onClick={() => setCreateForm({...createForm, role: role.value as any})}
                       >
+                        {role.icon}
                         {role.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       Password <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="password"
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                      className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                       placeholder="Password"
                       value={createForm.password}
-                      onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                      onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       Confirm Password <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="password"
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                      className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                       placeholder="Confirm"
                       value={createForm.confirm_password}
-                      onChange={(e) => setCreateForm({ ...createForm, confirm_password: e.target.value })}
+                      onChange={(e) => setCreateForm({...createForm, confirm_password: e.target.value})}
                     />
                   </div>
                 </div>
+              </div>
 
-                <div className="flex gap-3 pt-4">
-                  <button
-                    className="flex-1 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-2xl text-gray-700 dark:text-gray-300 font-semibold transition-all duration-200"
-                    onClick={() => setCreateModalVisible(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-2xl shadow-lg shadow-cyan-500/30 transition-all duration-200 disabled:opacity-50"
-                    onClick={handleCreateMember}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Creating...' : 'Create Member'}
-                  </button>
-                </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-xl font-medium text-sm transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateMember}
+                  disabled={isLoading}
+                  className="flex-1 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-cyan-500/30"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Create Member'
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -818,31 +1085,34 @@ const MemberManagement: React.FC = () => {
       )}
 
       {/* Edit Modal */}
-      {editModalVisible && selectedMember && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-t-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl animate-slide-up">
-            <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 p-6 flex items-center justify-between">
+      {showEditModal && selectedMember && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <div>
-                <h3 className="text-2xl font-bold text-white">Edit Member</h3>
-                <p className="text-sm text-white/90 mt-1">Update member information</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Edit Member</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{selectedMember.mobile_number}</p>
               </div>
               <button
-                onClick={() => setEditModalVisible(false)}
-                className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-2xl font-bold transition-all duration-200 flex items-center justify-center"
+                onClick={() => setShowEditModal(false)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                ✕
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-130px)]">
-              <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center`} style={{ backgroundColor: getRoleColor(selectedMember.role) + '20' }}>
-                  <span className="text-2xl font-bold" style={{ color: getRoleColor(selectedMember.role) }}>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: ROLE_COLORS[selectedMember.role] + '20' }}
+                >
+                  <span className="text-xl font-bold" style={{ color: ROLE_COLORS[selectedMember.role] }}>
                     {getUserInitials(selectedMember)}
                   </span>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">{getDisplayName(selectedMember)}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{getDisplayName(selectedMember)}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{selectedMember.mobile_number}</p>
                   <p className="text-xs text-gray-400">Joined {formatDate(selectedMember.date_joined)}</p>
                 </div>
@@ -850,77 +1120,80 @@ const MemberManagement: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">Full Name</label>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Full Name</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                     placeholder="Full Name"
-                    value={editForm.full_name}
-                    onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                    value={editForm.full_name || ''}
+                    onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">Email</label>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Email</label>
                   <input
                     type="email"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                     placeholder="Email"
                     value={editForm.email || ''}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">Mobile Number</label>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Mobile Number</label>
                   <input
-                    type="text"
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-200 outline-none"
+                    type="tel"
+                    className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
                     placeholder="Mobile Number"
-                    value={editForm.mobile_number}
-                    onChange={(e) => setEditForm({ ...editForm, mobile_number: e.target.value })}
+                    value={editForm.mobile_number || ''}
+                    onChange={(e) => setEditForm({...editForm, mobile_number: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">Role</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Role</label>
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {ROLE_OPTIONS.map(role => (
                       <button
                         key={role.value}
-                        className={`px-4 py-3 rounded-2xl border-2 transition-all duration-200 font-medium ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                           editForm.role === role.value
-                            ? `border-${role.color} bg-${role.color}20 text-${role.color}`
-                            : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300'
+                            ? 'text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                         }`}
                         style={{
-                          borderColor: editForm.role === role.value ? role.color : '',
-                          backgroundColor: editForm.role === role.value ? role.color + '20' : '',
-                          color: editForm.role === role.value ? role.color : '',
+                          backgroundColor: editForm.role === role.value ? role.color : undefined
                         }}
-                        onClick={() => setEditForm({ ...editForm, role: role.value as any })}
+                        onClick={() => setEditForm({...editForm, role: role.value as any})}
                       >
+                        {role.icon}
                         {role.label}
                       </button>
                     ))}
                   </div>
                 </div>
+              </div>
 
-                <div className="flex gap-3 pt-4">
-                  <button
-                    className="flex-1 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-2xl text-gray-700 dark:text-gray-300 font-semibold transition-all duration-200"
-                    onClick={() => setEditModalVisible(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-2xl shadow-lg shadow-cyan-500/30 transition-all duration-200 disabled:opacity-50"
-                    onClick={handleUpdateMember}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-xl font-medium text-sm transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateMember}
+                  disabled={isLoading}
+                  className="flex-1 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-cyan-500/30"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Save Changes'
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -929,59 +1202,51 @@ const MemberManagement: React.FC = () => {
 
       {/* Confirmation Modal */}
       <ConfirmationModal
-        visible={actionModalVisible}
-        message={
-          actionType === 'delete' ? 'Are you sure you want to permanently delete this member? This action cannot be undone.' :
-          actionType === 'deactivate' ? 'Are you sure you want to deactivate this member? They will not be able to log in.' :
-          actionType === 'activate' ? 'Are you sure you want to activate this member? They will be able to log in again.' :
-          actionType === 'role_change' && selectedMember ? 
-            `Change role from ${selectedMember.role_display} to ${newRole ? ROLE_OPTIONS.find(r => r.value === newRole)?.label || newRole : 'new role'}?` :
-          ''
-        }
-        onConfirm={executeAction}
-        onCancel={() => {
-          setActionModalVisible(false);
-          setNewRole('');
-        }}
-        isDestructive={actionType === 'delete'}
-      />
-
-      {/* Success Modal */}
-      <SuccessModal
-        visible={successModalVisible}
-        message={successMessage}
-        onClose={() => {
-          setSuccessModalVisible(false);
-          setModalVisible(false);
-          setEditModalVisible(false);
-        }}
+        isOpen={confirmationModal.isOpen}
+        type={confirmationModal.type}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={confirmationModal.onCancel}
+        confirmText={confirmationModal.confirmText}
+        cancelText={confirmationModal.cancelText}
+        details={confirmationModal.details}
       />
 
       {/* Loading Overlay */}
-      {isLoading && !successModalVisible && !createModalVisible && !editModalVisible && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl text-center min-w-[180px]">
-            <div className="w-14 h-14 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400 font-medium">Processing...</p>
+      {isLoading && !confirmationModal.isOpen && !showCreateModal && !showEditModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 flex flex-col items-center shadow-2xl">
+            <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
+            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">Processing...</p>
           </div>
         </div>
       )}
 
+      {/* Custom Animations */}
       <style>{`
-        @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
+        @keyframes scale-in {
+          from { transform: scale(0.9); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </div>
   );
-};
-
-export default MemberManagement;
+}
