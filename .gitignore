@@ -409,8 +409,7 @@ pnpm-lock.yaml
 # Bower
 bower_components/
 
-# Component folder
-components/
+
 
 # Storybook
 storybook-static/
@@ -717,5 +716,6 @@ CMakeLists.txt
 /Assets/*.project.gmx
 /Assets/*.project.gmx
 /Assets/*.project.gmx
-/Assets/*.project.gmxn o d e _ m o d u l e s  
+/Assets/*.project.gmxn o d e _ m o d u l e s 
+ 
  
