@@ -1,60 +1,30 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// src/Admin/Aprove.tsx
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   X,
-  Check,
-  AlertCircle,
+  
   Loader,
   Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  Clock,
   User,
-  Car,
-  DollarSign,
-  Info,
-  Shield,
   CheckCircle,
   Clock as ClockIcon,
-  Send,
   ChevronRight,
-  ChevronLeft,
   Calendar as CalendarIcon,
-  Smartphone,
-  Briefcase,
-  FileText,
-  Plus,
-  Star,
-  Wifi,
-  WifiOff,
-  Sun,
-  Moon,
-  Menu,
-  Home,
-  Grid,
-  LogOut,
-  Settings,
-  HelpCircle,
-  Search,
-  Filter,
-  RefreshCw,
-  Eye,
   Edit,
   Trash2,
   Map,
-  Navigation,
-  Building,
-  CreditCard,
-  Tag,
-  Users,
-  Award,
-  AlertTriangle,
   Locate,
   MapPin as MapPinIcon,
   SendHorizontal,
-  PersonAdd
+  Search,
+  RefreshCw,
+  FileText,
+  Plus,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 // Types
@@ -135,8 +105,6 @@ const ApprovePage: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<CustomerRequest | null>(null);
   const [requestCode, setRequestCode] = useState('');
-  const [appointmentCode, setAppointmentCode] = useState('');
-  const [appointmentDetails, setAppointmentDetails] = useState<any>(null);
   const [previousStatus, setPreviousStatus] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [notes, setNotes] = useState('');
@@ -152,11 +120,8 @@ const ApprovePage: React.FC = () => {
   });
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
-  const [mapLocation, setMapLocation] = useState<{ lat: number; lng: number } | null>(null);
   
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [allApprovals, setAllApprovals] = useState<ApproveRecord[]>([]);
   const [myApprovals, setMyApprovals] = useState<ApproveRecord[]>([]);
   const [customerRequests, setCustomerRequests] = useState<CustomerRequest[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -166,21 +131,6 @@ const ApprovePage: React.FC = () => {
 
   // Mock user
   const user = mockUser;
-
-  // Colors
-  const colors = {
-    background: isDark ? '#0f172a' : '#f8fafc',
-    card: isDark ? '#1e293b' : '#ffffff',
-    text: isDark ? '#f1f5f9' : '#0f172a',
-    textSecondary: isDark ? '#94a3b8' : '#475569',
-    border: isDark ? '#334155' : '#e2e8f0',
-    primary: '#0891b2',
-    primaryDark: '#0e7490',
-    success: '#10b981',
-    error: '#ef4444',
-    warning: '#f59e0b',
-    indigo: '#6366f1',
-  };
 
   // Get user functions
   const getUserFullName = useCallback((): string => {
@@ -299,7 +249,6 @@ const ApprovePage: React.FC = () => {
   const fetchApprovals = useCallback(async () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      setAllApprovals(mockApprovals);
       const currentUserName = getUserFullName();
       const userApprovals = mockApprovals.filter(
         approval => approval.updated_by === currentUserName
@@ -461,23 +410,6 @@ const ApprovePage: React.FC = () => {
     setSelectedRequest(request);
     setRequestCode(request.request_code);
     setPreviousStatus(request.request_status);
-    
-    if (request.service_appointment) {
-      setAppointmentCode(request.service_appointment.appointment_code);
-      setAppointmentDetails({
-        appointment_code: request.service_appointment.appointment_code,
-        appointment_status: request.service_appointment.appointment_status,
-        appointment_date: request.service_appointment.appointment_date,
-        appointment_time: request.service_appointment.appointment_time,
-        appointment_service: request.service_appointment.appointment_service,
-        agreed_price: request.service_appointment.agreed_price,
-        workshop_name: request.service_appointment.service_workshop?.workshop_name,
-        workshop_phone: request.service_appointment.service_workshop?.workshop_phone,
-      });
-    } else {
-      setAppointmentCode('');
-      setAppointmentDetails(null);
-    }
     setShowRequestSelector(false);
   }, []);
 
@@ -485,8 +417,6 @@ const ApprovePage: React.FC = () => {
   const resetSelection = useCallback(() => {
     setSelectedRequest(null);
     setRequestCode('');
-    setAppointmentCode('');
-    setAppointmentDetails(null);
     setPreviousStatus('');
   }, []);
 
@@ -515,9 +445,9 @@ const ApprovePage: React.FC = () => {
         updated_by: updatedBy.trim(),
         phone_number: phoneNumber.trim(),
         request_code: requestCode,
-        previous_status: previousStatus || null,
-        new_status: newStatus || null,
-        notes: notes || null,
+        previous_status: previousStatus || undefined,
+        new_status: newStatus || undefined,
+        notes: notes || undefined,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         location_address: location.location_address || '',
@@ -562,7 +492,6 @@ const ApprovePage: React.FC = () => {
     }
     
     if (window.confirm('Delete your approval?')) {
-      setAllApprovals(prev => prev.filter(item => item.id !== id));
       setMyApprovals(prev => prev.filter(item => item.id !== id));
       alert('Approval record removed');
     }
@@ -860,7 +789,7 @@ const ApprovePage: React.FC = () => {
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
       <div className="flex items-center gap-3 mb-5">
         <div className="w-8 h-8 bg-cyan-100 dark:bg-cyan-900/20 rounded-full flex items-center justify-center">
-          <PersonAdd className="w-5 h-5 text-cyan-500" />
+          <User className="w-5 h-5 text-cyan-500" />
         </div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex-1">New Approval</h2>
         {editMode && (

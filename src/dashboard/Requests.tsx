@@ -1,6 +1,6 @@
 // src/pages/dashboard/ServiceRequest.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -12,7 +12,6 @@ import {
   MapPin,
   Building2,
   Car,
-  Calendar,
   AlertCircle,
   CheckCircle,
   Info,
@@ -21,45 +20,13 @@ import {
   Image as ImageIcon,
   Trash2,
   ChevronDown,
-  ChevronUp,
   Loader2,
-  Shield,
   Clock,
   Flame,
   Send,
   Check,
   FileText,
-  Wrench,
-  Truck,
-  Users,
-  Star,
-  Award,
-  TrendingUp,
-  BarChart3,
-  Activity,
-  Settings,
-  Menu,
-  Search,
-  Plus,
-  Edit2,
-  Save,
-  XCircle,
-  PhoneCall,
-  MailOpen,
-  Map,
-  Navigation,
-  Calendar as CalendarIcon,
-  Clock as ClockIcon,
-  Zap,
-  ShieldCheck,
-  Sparkles,
-  Heart,
-  MessageCircle,
-  ThumbsUp,
-  Gift,
-  Crown,
-  BadgeCheck,
-  Rocket
+  Zap
 } from 'lucide-react';
 
 // API Configuration
@@ -239,7 +206,7 @@ const SuccessModal: React.FC<{
   onClose: () => void;
   onViewRequests: () => void;
   onSubmitAnother: () => void;
-}> = ({ isOpen, requestCode, email, onClose, onViewRequests, onSubmitAnother }) => {
+}> = ({ isOpen, requestCode, email, onViewRequests, onSubmitAnother }) => {
   if (!isOpen) return null;
 
   return (
@@ -382,7 +349,7 @@ const vehicleTypes = [
 
 export default function ServiceRequest() {
   const navigate = useNavigate();
-  const { user, profileData, token, isAuthenticated, isLoading: userLoading } = useUser();
+  const { user, profileData, isAuthenticated, isLoading: userLoading } = useUser();
   const [showSidebar, setShowSidebar] = useState(false);
 
   // State
@@ -418,7 +385,6 @@ export default function ServiceRequest() {
   const [characterCount, setCharacterCount] = useState(0);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showImageModal, setShowImageModal] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [showServiceTypeModal, setShowServiceTypeModal] = useState(false);
   const [showPriorityModal, setShowPriorityModal] = useState(false);
   const [showVehicleTypeModal, setShowVehicleTypeModal] = useState(false);
@@ -602,6 +568,9 @@ export default function ServiceRequest() {
     setLoading(true);
 
     try {
+      // Get token from localStorage
+      const token = localStorage.getItem('access_token');
+      
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -861,14 +830,8 @@ export default function ServiceRequest() {
                   </div>
                 ) : (
                   <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center hover:border-cyan-500 transition-colors bg-gray-50 dark:bg-gray-800">
-                    {uploadingImage ? (
-                      <Loader2 className="w-6 h-6 text-cyan-500 animate-spin" />
-                    ) : (
-                      <>
-                        <Camera className="w-6 h-6 text-gray-400" />
-                        <span className="text-[10px] text-gray-400 mt-1">Upload</span>
-                      </>
-                    )}
+                    <Camera className="w-6 h-6 text-gray-400" />
+                    <span className="text-[10px] text-gray-400 mt-1">Upload</span>
                   </div>
                 )}
               </button>
@@ -1195,7 +1158,6 @@ export default function ServiceRequest() {
             <button
               className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               onClick={() => {
-                // Gallery picker logic would go here
                 setShowImageModal(false);
               }}
             >
@@ -1205,7 +1167,6 @@ export default function ServiceRequest() {
             <button
               className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               onClick={() => {
-                // Camera logic would go here
                 setShowImageModal(false);
               }}
             >

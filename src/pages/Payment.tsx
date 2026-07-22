@@ -1,6 +1,6 @@
 // src/pages/PaymentPage.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -8,16 +8,11 @@ import {
   ArrowLeft,
   Check,
   User,
-  Mail,
-  Phone,
   FileText,
   Shield,
-  Calendar,
   CheckCircle,
   AlertTriangle,
-  X,
   Loader2,
-  RefreshCw,
   Save,
   CircleCheckBig,
   Wallet,
@@ -308,7 +303,7 @@ const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
 
 export default function PaymentPage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading: userLoading } = useUser();
+  const { user, isAuthenticated } = useUser();
   const [showSidebar, setShowSidebar] = useState(false);
 
   // State
@@ -319,7 +314,6 @@ export default function PaymentPage() {
   const [currentStage, setCurrentStage] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [paymentMethods] = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS);
 
   // Payment Confirmation Fields
@@ -369,7 +363,7 @@ export default function PaymentPage() {
   useEffect(() => {
     if (isAuthenticated && user) {
       const userPhone = user.mobile_number || '';
-      const userName = user.full_name || user.name || '';
+      const userName = user.full_name || '';
       const userEmail = user.email || '';
       if (userPhone) setSenderPhone(userPhone);
       if (userName) setSenderName(userName);
@@ -477,13 +471,7 @@ export default function PaymentPage() {
       showConfirmationModal('error', 'Error', 'Failed to load your requests');
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  };
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchUserRequests();
   };
 
   const showConfirmationModal = (
@@ -802,7 +790,7 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
           {serviceRequests.map((item) => (
             <div
               key={item.id}
-              className={`bg-white dark:bg-gray-800 rounded-xl p-4 border-2 cursor-pointer transition-all ${
+              className={`relative bg-white dark:bg-gray-800 rounded-xl p-4 border-2 cursor-pointer transition-all ${
                 selectedRequest?.id === item.id
                   ? 'border-cyan-500 shadow-lg shadow-cyan-500/20'
                   : 'border-gray-200 dark:border-gray-700 hover:border-cyan-300'
@@ -860,7 +848,7 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
               key={method.id}
               className={`bg-white dark:bg-gray-800 rounded-xl p-4 border-2 cursor-pointer transition-all ${
                 selectedMethod === method.id
-                  ? `border-${method.color} shadow-lg`
+                  ? `border-[${method.color}] shadow-lg`
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
               }`}
               style={{ borderColor: selectedMethod === method.id ? method.color : undefined }}

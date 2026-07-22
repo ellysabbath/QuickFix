@@ -1,6 +1,6 @@
 // src/pages/admin/ServiceRequestsManager.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -22,39 +22,21 @@ import {
   CreditCard,
   Calendar,
   Loader2,
-  List,
   Trash2,
   Check,
   XCircle,
   DollarSign,
   FileText,
   Zap,
-  ExternalLink,
-  ChevronDown,
-  Navigation,
-  Map as MapIcon,
-  Globe,
-  Wallet,
-  Image,
-  Receipt,
-  Send,
-  MessageCircle,
-  Shield,
-  Award,
   Building2,
-  Smartphone,
-  Copy,
-  QrCode,
   Plus,
   Edit2,
   Star,
-  StarHalf,
   Inbox,
-  UserPlus,
   Briefcase,
-  TrendingUp,
-  BarChart3,
-  AlertCircle
+  AlertCircle,
+  MessageCircle,
+  
 } from 'lucide-react';
 
 // API Configuration
@@ -423,7 +405,7 @@ const apiFunctions = {
 
 export default function ServiceRequestsManager() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user: _user } = useUser(); // Renamed to indicate intentionally unused
   const [showSidebar, setShowSidebar] = useState(false);
 
   const [requests, setRequests] = useState<ServiceRequest[]>([]);

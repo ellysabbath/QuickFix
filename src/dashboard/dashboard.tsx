@@ -169,7 +169,7 @@ export default function ServicesPage() {
   const [featuredServices, setFeaturedServices] = useState<RepairService[]>([]);
   
   // Online status states
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -253,10 +253,7 @@ export default function ServicesPage() {
   }, []);
 
   // Refresh handler
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchServices();
-  }, []);
+
 
   // Sync data with server
   const handleSync = useCallback(async () => {

@@ -1,16 +1,13 @@
 // src/pages/dashboard/MyRequests.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
 import {
   ArrowLeft,
-  RefreshCw,
-  Search,
   X,
   Eye,
-  Clock,
   CheckCircle,
   AlertTriangle,
   Info,
@@ -18,51 +15,12 @@ import {
   Phone,
   Mail,
   User,
-  Car,
-  CreditCard,
-  Calendar,
   Loader2,
-  List,
   Trash2,
-  Check,
-  XCircle,
-  DollarSign,
-  FileText,
-  Zap,
-  ExternalLink,
-  ChevronDown,
-  Navigation,
-  Map as MapIcon,
-  Globe,
-  Wallet,
-  Image,
-  Receipt,
-  Send,
-  MessageCircle,
-  Shield,
-  Award,
-  Building2,
-  Smartphone,
-  Copy,
-  QrCode,
+  Star,
   Plus,
   Edit2,
-  Star,
-  StarHalf,
-  Inbox,
-  UserPlus,
-  Briefcase,
-  TrendingUp,
-  BarChart3,
-  AlertCircle,
-  Filter,
-  Grid,
-  List as ListIcon,
-  Menu,
-  Settings,
-  Home,
-  LogOut,
-  User as UserIcon
+  Inbox
 } from 'lucide-react';
 
 // API Configuration
@@ -94,6 +52,7 @@ interface ServiceRequest {
   user_rating?: number;
   user_feedback?: string;
   user_email?: string;
+  garage_notes?: string;
 }
 
 // Confirmation Modal Component
@@ -273,14 +232,18 @@ const getAuthToken = (): string | null => {
 const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    ...options.headers,
   };
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  // Merge with any additional headers
+  if (options.headers) {
+    Object.assign(headers, options.headers);
   }
   
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -389,7 +352,7 @@ const getStatusBgClass = (status: string) => {
 
 export default function MyRequests() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading: userLoading } = useUser();
+  const { user: _user, isAuthenticated, isLoading: userLoading } = useUser();
   const [showSidebar, setShowSidebar] = useState(false);
 
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -401,6 +364,8 @@ export default function MyRequests() {
   const [showDetail, setShowDetail] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showRating, setShowRating] = useState(false);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [feedbackValue, setFeedbackValue] = useState('');
   const [editFormData, setEditFormData] = useState({
     garage_notes: '',
     estimated_cost: '',
@@ -509,12 +474,14 @@ export default function MyRequests() {
     }
   };
 
-  const handleRating = async (id: number, rating: number, feedback: string) => {
+  const handleRatingSubmit = async (id: number, rating: number, feedback: string) => {
     try {
       await apiFunctions.submitRating(id, rating, feedback);
       await loadRequests();
       showSuccess('Thank You!', 'Your feedback has been submitted');
       setShowRating(false);
+      setRatingValue(0);
+      setFeedbackValue('');
     } catch (error) {
       showConfirmationModal('error', 'Error', 'Failed to submit rating');
     }
@@ -669,7 +636,6 @@ export default function MyRequests() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRequests.map((request) => {
-              const statusColor = getStatusColor(request.status);
               const statusBgClass = getStatusBgClass(request.status);
 
               return (
@@ -764,6 +730,8 @@ export default function MyRequests() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedRequest(request);
+                          setRatingValue(0);
+                          setFeedbackValue('');
                           setShowRating(true);
                         }}
                         className="flex items-center gap-1 px-2.5 py-1 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-lg text-[10px] font-medium hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
@@ -1023,10 +991,8 @@ export default function MyRequests() {
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-4">{selectedRequest.request_code}</p>
               <div className="flex justify-center mb-4">
                 <StarRating
-                  rating={0}
-                  onRatingChange={(rating) => {
-                    // Store rating in a ref or state
-                  }}
+                  rating={ratingValue}
+                  onRatingChange={(rating) => setRatingValue(rating)}
                   size="lg"
                 />
               </div>
@@ -1036,6 +1002,8 @@ export default function MyRequests() {
                   className="w-full mt-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors resize-none"
                   placeholder="Share your experience..."
                   rows={3}
+                  value={feedbackValue}
+                  onChange={(e) => setFeedbackValue(e.target.value)}
                 />
               </div>
             </div>
@@ -1049,9 +1017,11 @@ export default function MyRequests() {
               </button>
               <button
                 onClick={() => {
-                  // Get rating from state
-                  showConfirmationModal('success', 'Thank You!', 'Your feedback has been submitted');
-                  setShowRating(false);
+                  if (ratingValue === 0) {
+                    showConfirmationModal('error', 'Error', 'Please select a rating');
+                    return;
+                  }
+                  handleRatingSubmit(selectedRequest.id, ratingValue, feedbackValue);
                 }}
                 className="flex-1 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-medium text-sm transition-colors shadow-md shadow-cyan-500/30"
               >

@@ -1,4 +1,5 @@
-// pages/LoginScreen.tsx
+// src/pages/Login.tsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,14 +10,9 @@ import {
   X,
   Search,
   Phone,
-  LogIn,
   UserPlus,
   AlertCircle,
-  CheckCircle,
-  Loader,
-  Info,
-  User,
-  Shield
+  Loader
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import loginApi from '../lib/api/loginApi';
@@ -66,7 +62,6 @@ const LoginScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [checkingPhone, setCheckingPhone] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
@@ -120,20 +115,17 @@ const LoginScreen: React.FC = () => {
     setShowSuccess(false);
     
     try {
-      setCheckingPhone(true);
       const checkResponse = await loginApi.checkPhoneNumber(fullNumber);
       
       if (!checkResponse.valid) {
         setError(checkResponse.message || 'Invalid phone number');
         setIsLoading(false);
-        setCheckingPhone(false);
         return;
       }
       
       if (!checkResponse.user_exists) {
         setError('No account exists with this phone number. Would you like to create a new account?');
         setIsLoading(false);
-        setCheckingPhone(false);
         return;
       }
       
@@ -158,7 +150,6 @@ const LoginScreen: React.FC = () => {
       setShowSuccess(false);
     } finally {
       setIsLoading(false);
-      setCheckingPhone(false);
     }
   };
 

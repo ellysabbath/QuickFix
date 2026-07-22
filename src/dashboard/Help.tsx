@@ -1,6 +1,6 @@
 // src/pages/dashboard/HelpPage.tsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -11,7 +11,6 @@ import {
   Mail,
   Inbox,
   Key,
-  CheckCircle,
   LogIn,
   Clock,
   HelpCircle,
@@ -19,29 +18,17 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  Phone,
   Mail as MailIcon,
   Send,
   FileText,
   Info,
-  Check,
-  AlertTriangle,
-  User,
-  Settings,
-  BookOpen,
   Headphones,
-  RefreshCw,
-  Timer,
-  CheckCheck,
-  Sparkles,
-  Star,
-  ThumbsUp,
-  Zap
+  Timer
 } from 'lucide-react';
 
 export default function HelpPage() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user: _user } = useUser(); // Renamed to _user to indicate intentionally unused
   const [showSidebar, setShowSidebar] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 

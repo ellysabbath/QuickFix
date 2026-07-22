@@ -12,11 +12,9 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  Phone,
   Mail,
   User,
   Shield,
-  Calendar,
   Loader2,
   Plus,
   Trash2,
@@ -28,7 +26,6 @@ import {
   UserX,
   Building2,
   Wrench,
- 
 } from 'lucide-react';
 
 // ============================================================================
@@ -210,7 +207,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function MemberManagement() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user: _user } = useUser(); // Renamed to indicate intentionally unused
   const [showSidebar, setShowSidebar] = useState(false);
 
   // State
@@ -286,14 +283,6 @@ export default function MemberManagement() {
       cancelText,
       details,
     });
-  };
-
-  const getAuthToken = (): string | null => {
-    try {
-      return localStorage.getItem('access_token');
-    } catch {
-      return null;
-    }
   };
 
   // ============================================================================

@@ -1,6 +1,6 @@
 // src/pages/admin/WorkshopsManagement.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -9,49 +9,21 @@ import {
   RefreshCw,
   Search,
   X,
-  Eye,
-  Clock,
   CheckCircle,
   AlertTriangle,
   Info,
   MapPin,
   Phone,
   Mail,
-  User,
   Building2,
-  Calendar,
   Loader2,
   Plus,
   Trash2,
   Edit2,
   Power,
   PowerOff,
-  Check,
-  XCircle,
-  DollarSign,
-  FileText,
-  Zap,
-  ExternalLink,
-  ChevronDown,
-  Navigation,
-  Globe,
   Shield,
-  Award,
-  Smartphone,
-  Copy,
-  QrCode,
-  Briefcase,
-  TrendingUp,
-  BarChart3,
-  AlertCircle,
-  Wrench,
-  
-  Car,
-  Factory,
-  Home,
-  Users,
-  Star,
-  Settings
+  Wrench
 } from 'lucide-react';
 
 // API Configuration
@@ -208,7 +180,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
 export default function WorkshopsManagement() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user: _user } = useUser(); // Renamed to indicate intentionally unused
   const [showSidebar, setShowSidebar] = useState(false);
 
   // State

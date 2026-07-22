@@ -27,16 +27,9 @@ import {
   X,
   AlertTriangle,
   Info,
-  Settings as SettingsIcon,
   Calendar,
   Wrench,
-  Monitor,
-  Smartphone,
-  HardDrive,
-  UserCheck,
-  Award,
-  ChevronRight,
-  
+  ChevronRight
 } from 'lucide-react';
 
 // Confirmation Modal Component

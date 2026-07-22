@@ -1,7 +1,8 @@
+// src/pages/Home.tsx
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  ArrowRight,
   Tag,
   Shield,
   RefreshCw,
@@ -11,32 +12,18 @@ import {
   UserPlus,
   LogIn,
   Star,
-  Zap,
-  Award,
-  CheckCircle
+  Zap
 } from 'lucide-react';
 
 const WelcomeScreen: React.FC = () => {
   // Animation state
-  const [arrowTranslate, setArrowTranslate] = useState(0);
   const [scaleValue, setScaleValue] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   // Animation effect
   useEffect(() => {
-    let arrowInterval: number;
     let scaleInterval: number;
-    let arrowDirection = 1;
     let scaleDirection = 1;
-
-    arrowInterval = window.setInterval(() => {
-      setArrowTranslate(prev => {
-        const newVal = prev + arrowDirection * 0.5;
-        if (newVal >= 5) arrowDirection = -1;
-        if (newVal <= 0) arrowDirection = 1;
-        return newVal;
-      });
-    }, 50);
 
     scaleInterval = window.setInterval(() => {
       setScaleValue(prev => {
@@ -48,7 +35,6 @@ const WelcomeScreen: React.FC = () => {
     }, 50);
 
     return () => {
-      clearInterval(arrowInterval);
       clearInterval(scaleInterval);
     };
   }, []);
@@ -115,7 +101,7 @@ const WelcomeScreen: React.FC = () => {
           </h2>
           <div className="flex items-center justify-center gap-2 bg-cyan-50 px-4 py-2 rounded-full inline-block">
             <Tag className="w-4 h-4 text-cyan-500" />
-            <span className="text-gray-600 text-sm font-medium"></span>
+            <span className="text-gray-600 text-sm font-medium">Best deals available</span>
           </div>
         </div>
 

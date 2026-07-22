@@ -1,6 +1,6 @@
 // src/pages/dashboard/GaragesPage.tsx
 
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import  { useCallback, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -18,31 +18,15 @@ import {
   StarHalf,
   Star as StarOutline,
   CheckCircle,
-  AlertCircle,
-  Info,
+
   Map,
   Building2,
   Wrench,
   Tag,
-  User,
-  Settings,
+
   Navigation,
   Loader2,
-  PhoneCall,
-  Briefcase,
-  Award,
-  Shield,
-  Truck,
-  Car,
-  
-  Compass,
-  ChevronRight,
-  PlusCircle,
-  Home,
-  DollarSign,
-  Clock as ClockIcon,
-  Users,
-  ThumbsUp
+
 } from 'lucide-react';
 
 // API Configuration
@@ -87,7 +71,6 @@ export default function GaragesPage() {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
   const [activeTab, setActiveTab] = useState<'garages' | 'map' | 'deals' | 'bookings' | 'profile'>('garages');
-  const [isOnline, setIsOnline] = useState(true);
 
   // Get user's display name and initials
   const userDisplayName = user?.full_name || user?.mobile_number || 'User';
@@ -406,7 +389,7 @@ export default function GaragesPage() {
                 {userInitials}
               </div>
             )}
-            <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+            <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border-2 border-white ${true ? 'bg-green-500' : 'bg-gray-400'}`} />
             {activeTab === 'profile' && (
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-600" />
             )}
@@ -483,7 +466,7 @@ export default function GaragesPage() {
       {/* Location Card */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4">
         <div 
-          className={`flex items-center p-3 rounded-xl border transition-all ${
+          className={`flex items-center p-3 rounded-xl border transition-all cursor-pointer ${
             loadingLocation 
               ? 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
               : locationPermissionDenied 

@@ -1,6 +1,6 @@
 // src/pages/dashboard/CustomerServiceRequest.tsx
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -11,52 +11,23 @@ import {
   X,
   Calendar,
   Clock,
-  MapPin,
+  
   Navigation,
-  User,
-  Phone,
-  Mail,
-  Car,
-  CreditCard,
+
   AlertCircle,
   Info,
   CheckCircle,
   Search,
   ChevronDown,
-  ChevronUp,
+ 
   Loader2,
-  Star,
+  
   Zap,
-  Flame,
+  
   Clock as ClockIcon,
-  Shield,
-  Award,
-  Building2,
-  Smartphone,
-  Map,
-  Home,
+
   Plus,
-  Edit2,
-  Trash2,
-  Menu,
-  Settings,
-  LogOut,
-  User as UserIcon,
-  Sun,
-  Moon,
-  Globe,
-  ExternalLink,
-  Copy,
-  Send,
-  MessageCircle,
-  ThumbsUp,
-  Gift,
-  Crown,
-  BadgeCheck,
-  Rocket,
-  Sparkles,
-  Heart,
-  ShieldCheck
+
 } from 'lucide-react';
 
 // Vehicle Brands Database
@@ -260,6 +231,10 @@ const SuccessModal: React.FC<{
 }> = ({ isOpen, requestCode, onClose, onViewRequests, onSubmitAnother }) => {
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 sm:p-8 w-full max-w-md text-center shadow-2xl animate-scale-in">
@@ -284,7 +259,6 @@ const SuccessModal: React.FC<{
               Garages will review your request
             </p>
             <p className="text-xs text-cyan-600 dark:text-cyan-400 flex items-center justify-center gap-1 mt-1">
-              <MessageCircle className="w-3 h-3" />
               You'll receive quotes from garages
             </p>
           </div>
@@ -304,16 +278,24 @@ const SuccessModal: React.FC<{
             Submit Another
           </button>
         </div>
+
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          <X className="w-5 h-5 text-gray-500" />
+        </button>
       </div>
     </div>
   );
 };
 
-// Select Modal Component
+// Select Modal Component - Fixed version
 const SelectModal: React.FC<{
   isOpen: boolean;
   title: string;
-  items: { id: string | number; name: string; }[];
+  items?: { id: string | number; name: string; }[];
   sections?: { title: string; data: string[] }[];
   selectedValue: string;
   onSelect: (value: string) => void;
@@ -324,7 +306,7 @@ const SelectModal: React.FC<{
 }> = ({ 
   isOpen, 
   title, 
-  items, 
+  items = [], 
   sections, 
   selectedValue, 
   onSelect, 
@@ -382,57 +364,69 @@ const SelectModal: React.FC<{
               </div>
 
               <div className="px-2 pb-2">
-                {sections ? (
-                  filteredSections.map((section) => (
-                    <div key={section.title}>
-                      <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg mb-1">
-                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{section.title}</span>
+                {sections && sections.length > 0 ? (
+                  filteredSections.length > 0 ? (
+                    filteredSections.map((section) => (
+                      <div key={section.title}>
+                        <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg mb-1">
+                          <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{section.title}</span>
+                        </div>
+                        {section.data.map((item) => (
+                          <button
+                            key={item}
+                            className={`w-full text-left p-3 rounded-xl transition-colors ${
+                              selectedValue === item
+                                ? 'bg-cyan-50 dark:bg-cyan-900/30 border-2 border-cyan-500'
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-transparent'
+                            }`}
+                            onClick={() => {
+                              onSelect(item);
+                              onClose();
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">{item}</span>
+                              {selectedValue === item && (
+                                <Check className="w-5 h-5 text-cyan-500" />
+                              )}
+                            </div>
+                          </button>
+                        ))}
                       </div>
-                      {section.data.map((item) => (
-                        <button
-                          key={item}
-                          className={`w-full text-left p-3 rounded-xl transition-colors ${
-                            selectedValue === item
-                              ? 'bg-cyan-50 dark:bg-cyan-900/30 border-2 border-cyan-500'
-                              : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-transparent'
-                          }`}
-                          onClick={() => {
-                            onSelect(item);
-                            onClose();
-                          }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">{item}</span>
-                            {selectedValue === item && (
-                              <Check className="w-5 h-5 text-cyan-500" />
-                            )}
-                          </div>
-                        </button>
-                      ))}
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <p className="text-sm">No results found</p>
                     </div>
-                  ))
+                  )
                 ) : (
-                  filteredItems.map((item) => (
-                    <button
-                      key={item.id}
-                      className={`w-full text-left p-3 rounded-xl transition-colors ${
-                        selectedValue === item.name
-                          ? 'bg-cyan-50 dark:bg-cyan-900/30 border-2 border-cyan-500'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-transparent'
-                      }`}
-                      onClick={() => {
-                        onSelect(item.name);
-                        onClose();
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</span>
-                        {selectedValue === item.name && (
-                          <Check className="w-5 h-5 text-cyan-500" />
-                        )}
-                      </div>
-                    </button>
-                  ))
+                  filteredItems.length > 0 ? (
+                    filteredItems.map((item) => (
+                      <button
+                        key={item.id}
+                        className={`w-full text-left p-3 rounded-xl transition-colors ${
+                          selectedValue === item.name
+                            ? 'bg-cyan-50 dark:bg-cyan-900/30 border-2 border-cyan-500'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-transparent'
+                        }`}
+                        onClick={() => {
+                          onSelect(item.name);
+                          onClose();
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</span>
+                          {selectedValue === item.name && (
+                            <Check className="w-5 h-5 text-cyan-500" />
+                          )}
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <p className="text-sm">No items available</p>
+                    </div>
+                  )
                 )}
 
                 {showCustom && !searchQuery && (
@@ -443,7 +437,7 @@ const SelectModal: React.FC<{
                     <Plus className="w-5 h-5 text-cyan-500" />
                     <div className="text-left">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">Not listed?</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Add your own brand</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Add your own</p>
                     </div>
                     <ChevronDown className="w-4 h-4 text-cyan-500 ml-auto" />
                   </button>
@@ -459,11 +453,11 @@ const SelectModal: React.FC<{
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-sm font-medium">Back</span>
               </button>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Enter brand name</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Enter value</p>
               <input
                 type="text"
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white outline-none focus:border-cyan-500 transition-colors"
-                placeholder="e.g., Tesla, Rivian..."
+                placeholder="Enter custom value..."
                 value={customValue}
                 onChange={(e) => setCustomValue(e.target.value)}
                 autoFocus
@@ -488,7 +482,7 @@ const SelectModal: React.FC<{
                   onClick={handleAddCustom}
                   disabled={!customValue.trim()}
                 >
-                  Add Brand
+                  Add Value
                 </button>
               </div>
             </div>
@@ -1423,6 +1417,7 @@ export default function CustomerServiceRequest() {
       <SelectModal
         isOpen={showBrandModal}
         title="Select Vehicle Brand"
+        items={[]}
         sections={BRAND_SECTIONS}
         selectedValue={formData.vehicle_brand}
         onSelect={(value) => updateFormData('vehicle_brand', value)}

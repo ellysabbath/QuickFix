@@ -1,6 +1,6 @@
 // src/pages/admin/AdminBookings.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -29,22 +29,12 @@ import {
   DollarSign,
   FileText,
   Zap,
-  ExternalLink,
   ChevronDown,
-  Navigation,
-  Map as MapIcon,
-  Globe,
   Wallet,
   Image,
   Receipt,
-  Send,
   MessageCircle,
-  Shield,
-  Award,
-  Building2,
-  Smartphone,
-  Copy,
-  QrCode
+  Smartphone
 } from 'lucide-react';
 
 // API Configuration
@@ -124,11 +114,6 @@ interface PaymentRecord {
   updated_at: string;
   confirmed_at: string | null;
   verified_at: string | null;
-}
-
-interface UserLocation {
-  latitude: number;
-  longitude: number;
 }
 
 // Confirmation Modal Component

@@ -1,4 +1,5 @@
-// pages/RegisterScreen.tsx
+// src/pages/Registration.tsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -14,10 +15,7 @@ import {
   LogIn,
   Info,
   Loader,
-  AlertCircle,
-  CheckCircle,
-  User,
-  Shield
+  AlertCircle
 } from 'lucide-react';
 import registerApi from '../lib/api/registerApi';
 

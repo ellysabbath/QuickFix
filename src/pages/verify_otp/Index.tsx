@@ -1,3 +1,5 @@
+// src/pages/verify_otp/Index.tsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -29,8 +31,8 @@ const VerifyOTPScreen: React.FC = () => {
   
   const inputRefs = [inputRef0, inputRef1, inputRef2, inputRef3, inputRef4, inputRef5];
 
-  // Get params from location state
-  const { phoneNumber, email, fromRegistration } = location.state || {};
+  // Get params from location state - only extract what's needed
+  const { email } = location.state || {};
 
   useEffect(() => {
     // Start countdown timer

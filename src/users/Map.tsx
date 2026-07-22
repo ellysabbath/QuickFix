@@ -13,9 +13,8 @@ import {
   Loader,
   Sun,
   Moon,
-  CheckCircle,
-  Maximize,
-  Minimize
+  CheckCircle
+ 
 } from 'lucide-react';
 
 // Dynamically load Leaflet CSS and JS

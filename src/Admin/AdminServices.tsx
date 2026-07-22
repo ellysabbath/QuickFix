@@ -1,6 +1,6 @@
 // src/pages/admin/RepairServicesManagement.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -10,13 +10,9 @@ import {
   Search,
   X,
   Eye,
-  Clock,
   CheckCircle,
   AlertTriangle,
   Info,
-  Phone,
-  Mail,
-  User,
   Building2,
   Calendar,
   Loader2,
@@ -25,17 +21,12 @@ import {
   Edit2,
   Power,
   PowerOff,
-  Check,
-  XCircle,
-  Users,
   Wrench,
   DollarSign,
   FileText,
   Tag,
   Filter,
- 
-  Clock as ClockIcon,
- 
+  Clock as ClockIcon
 } from 'lucide-react';
 
 // API Configuration
@@ -235,7 +226,7 @@ const FilterModal: React.FC<{
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
               selectedWorkshop === null ? 'border-cyan-500 bg-cyan-500' : 'border-gray-300'
             }`}>
-              {selectedWorkshop === null && <Check className="w-3 h-3 text-white" />}
+              {selectedWorkshop === null && <CheckCircle className="w-3 h-3 text-white" />}
             </div>
             <span className="text-sm font-medium text-gray-900 dark:text-white">All Workshops</span>
           </button>
@@ -251,7 +242,7 @@ const FilterModal: React.FC<{
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                 selectedWorkshop === workshop.id ? 'border-cyan-500 bg-cyan-500' : 'border-gray-300'
               }`}>
-                {selectedWorkshop === workshop.id && <Check className="w-3 h-3 text-white" />}
+                {selectedWorkshop === workshop.id && <CheckCircle className="w-3 h-3 text-white" />}
               </div>
               <div className="flex-1 text-left">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{workshop.workshop_name}</p>
@@ -545,7 +536,7 @@ const ServiceCard: React.FC<{
 
 export default function RepairServicesManagement() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user: _user } = useUser(); // Renamed to indicate intentionally unused
   const [showSidebar, setShowSidebar] = useState(false);
 
   // State

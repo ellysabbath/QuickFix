@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
+
 import Sidebar from '../components/Sidebar';
 
 // Contact Information
@@ -168,7 +168,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
 export default function ContactPage() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  
   const [showSidebar, setShowSidebar] = useState(false);
 
   // States

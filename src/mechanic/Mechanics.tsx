@@ -630,12 +630,6 @@ export default function RequestsManagement() {
     }
   }, [selectedRequest, showConfirmationModal, fetchRequests]);
 
-  // Event Handlers
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchRequests();
-  }, [fetchRequests]);
-
   const handleViewDetails = useCallback((request: PublicRequest) => {
     setSelectedRequest(request);
     setShowModal(true);

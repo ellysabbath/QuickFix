@@ -1,6 +1,6 @@
 // src/pages/ProfilePage.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -157,7 +157,6 @@ export default function ProfilePage() {
     user, 
     profileData, 
     updateProfile, 
-    updateProfilePicture, 
     deleteProfileField,
     refreshUserData, 
     isLoading: contextLoading, 

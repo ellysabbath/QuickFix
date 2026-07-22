@@ -1,6 +1,6 @@
 // src/pages/dashboard/CrudPage.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import Sidebar from '../../components/Sidebar';
@@ -14,7 +14,6 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  MapPin,
   Phone,
   Mail,
   User,
@@ -22,37 +21,22 @@ import {
   Loader2,
   Trash2,
   Check,
-  XCircle,
   DollarSign,
   FileText,
   Zap,
   ExternalLink,
-  ChevronDown,
-  MapPin as MapPinIcon,
   Wallet,
   Plus,
-  Edit2,
   Inbox,
   Briefcase,
   AlertCircle,
   Save,
   Navigation,
-  CreditCard,
   Smartphone,
-  Shield,
-  Award,
-  Building2,
-  Copy,
-  QrCode,
-  Menu,
-  Settings,
-  Home,
-  LogOut,
-  User as UserIcon,
   Moon,
   Sun,
-  Power,
-  PowerOff
+  MapPin,
+  Lock
 } from 'lucide-react';
 
 // API Configuration
@@ -406,7 +390,7 @@ const MapModal: React.FC<{
         </button>
         <h3 className="text-sm font-bold text-gray-900 dark:text-white">Customer Location</h3>
         <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-          <Globe className="w-5 h-5 text-gray-500" />
+          <ExternalLink className="w-5 h-5 text-gray-500" />
         </button>
       </div>
 
@@ -422,7 +406,7 @@ const MapModal: React.FC<{
 
       <div className="flex-1 relative bg-gray-100 dark:bg-gray-800">
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <MapPinIcon className="w-16 h-16 text-red-500" />
+          <MapPin className="w-16 h-16 text-red-500" />
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">📍 {customerName}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs text-center px-4">{address}</p>
           <div className="flex gap-3 mt-4">
@@ -444,7 +428,7 @@ const MapModal: React.FC<{
 
       <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-start gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-3">
-          <MapPinIcon className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-gray-600 dark:text-gray-400">{address}</p>
         </div>
         <button
@@ -586,12 +570,6 @@ export default function CrudPage() {
     type: 'success',
     title: '',
     message: '',
-  });
-
-  // Budget form
-  const [budgetForm, setBudgetForm] = useState({
-    budget_maximum: '',
-    is_budget_flexible: true,
   });
 
   const showConfirmationModal = (
@@ -1100,7 +1078,6 @@ export default function CrudPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRequests.map((request) => {
-              const statusColor = getStatusColor(request.request_status);
               const urgencyColor = getUrgencyColor(request.request_urgency);
               const statusBgClass = getStatusBgClass(request.request_status);
               const hasBudget = request.budget_maximum !== null && request.budget_maximum !== undefined;
@@ -1159,17 +1136,13 @@ export default function CrudPage() {
                           className="p-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
                           title="View on Map"
                         >
-                          <MapPinIcon className="w-3.5 h-3.5" />
+                          <MapPin className="w-3.5 h-3.5" />
                         </button>
                       )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedRequest(request);
-                          setBudgetForm({
-                            budget_maximum: request.budget_maximum?.toString() || '',
-                            is_budget_flexible: request.is_budget_flexible ?? true,
-                          });
                           setShowBudgetModal(true);
                         }}
                         className="p-1 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
@@ -1226,16 +1199,12 @@ export default function CrudPage() {
                     className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
                     title="View on Map"
                   >
-                    <MapPinIcon className="w-4 h-4" />
+                    <MapPin className="w-4 h-4" />
                   </button>
                 )}
                 <button
                   onClick={() => {
                     setShowDetailModal(false);
-                    setBudgetForm({
-                      budget_maximum: selectedRequest.budget_maximum?.toString() || '',
-                      is_budget_flexible: selectedRequest.is_budget_flexible ?? true,
-                    });
                     setShowBudgetModal(true);
                   }}
                   className="p-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
@@ -1295,10 +1264,6 @@ export default function CrudPage() {
                   <button
                     onClick={() => {
                       setShowDetailModal(false);
-                      setBudgetForm({
-                        budget_maximum: selectedRequest.budget_maximum?.toString() || '',
-                        is_budget_flexible: selectedRequest.is_budget_flexible ?? true,
-                      });
                       setShowBudgetModal(true);
                     }}
                     className="text-xs text-yellow-600 dark:text-yellow-400 font-medium bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-lg"
@@ -1354,7 +1319,7 @@ export default function CrudPage() {
                 <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Location</h4>
                 <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 space-y-1.5">
                   <div className="flex items-start gap-2">
-                    <MapPinIcon className="w-4 h-4 text-red-500 mt-0.5" />
+                    <MapPin className="w-4 h-4 text-red-500 mt-0.5" />
                     <span className="text-sm text-gray-700 dark:text-gray-300">{selectedRequest.service_location}</span>
                   </div>
                   {selectedRequest.location_latitude && selectedRequest.location_longitude && (

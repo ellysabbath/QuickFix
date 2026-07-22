@@ -1,6 +1,6 @@
 // src/pages/admin/MemberManagement.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Sidebar from '../components/Sidebar';
@@ -9,61 +9,25 @@ import {
   RefreshCw,
   Search,
   X,
-  Eye,
-  Clock,
   CheckCircle,
   AlertTriangle,
   Info,
-  Phone,
   Mail,
   User,
   Shield,
-  Calendar,
+  
   Loader2,
   Plus,
   Trash2,
   Edit2,
   Power,
   PowerOff,
-  Check,
-  XCircle,
   Users,
-  UserPlus,
   UserCheck,
   UserX,
   Building2,
   Wrench,
-  PersonStanding,
- 
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  MoreVertical,
-  Copy,
-  Send,
-  MessageCircle,
-  Star,
-  Award,
-  Briefcase,
-  TrendingUp,
-  BarChart3,
-  Activity,
-  Filter,
-  Grid,
-  List,
-  EyeOff,
-  UserCog,
-  Key,
-  Lock,
-  Unlock,
-  ShieldCheck,
-  ShieldAlert,
-  Crown,
-  BadgeCheck,
-  UserMinus,
-  UserPlus as UserPlusIcon,
-  Users2,
-  Settings
+  ChevronRight
 } from 'lucide-react';
 
 // API Configuration
@@ -235,7 +199,7 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
 
 export default function MemberManagement() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user: _user } = useUser(); // Renamed to indicate intentionally unused
   const [showSidebar, setShowSidebar] = useState(false);
 
   // State
@@ -248,7 +212,6 @@ export default function MemberManagement() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionType, setActionType] = useState<'delete' | 'deactivate' | 'activate' | 'role_change' | null>(null);
@@ -508,7 +471,6 @@ export default function MemberManagement() {
       
       if (data.success) {
         showConfirmationModal('success', 'Deleted!', 'Member deleted successfully!');
-        setShowModal(false);
         fetchMembers();
         fetchStats();
       } else {
@@ -540,7 +502,6 @@ export default function MemberManagement() {
       
       if (data.success) {
         showConfirmationModal('success', 'Success!', `Member ${action}d successfully!`);
-        setShowModal(false);
         fetchMembers();
         fetchStats();
       } else {
@@ -570,7 +531,6 @@ export default function MemberManagement() {
       
       if (data.success) {
         showConfirmationModal('success', 'Success!', `Role changed to ${newRole}!`);
-        setShowModal(false);
         fetchMembers();
         fetchStats();
       } else {
@@ -593,6 +553,7 @@ export default function MemberManagement() {
     } else if (actionType === 'role_change') {
       await handleChangeRole();
     }
+    setActionType(null);
   };
 
   // Show action confirmation
@@ -829,7 +790,7 @@ export default function MemberManagement() {
             onClick={() => showActionConfirmation('role_change', item)}
             className="flex items-center gap-1 px-2.5 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg text-[10px] font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
           >
-            <SwapHorizontal className="w-3 h-3" />
+            <ChevronRight className="w-3 h-3" />
             Role
           </button>
           
