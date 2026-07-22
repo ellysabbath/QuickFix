@@ -10,6 +10,7 @@ import Registration from './pages/Registration';
 import Login from './pages/Login';
 import Index from './pages/verify_otp/Index';
 
+
 // Dashboard Pages
 import Dashboard from './dashboard/dashboard';
 import BookingScreen from './dashboard/Booking';

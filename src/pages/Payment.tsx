@@ -1428,7 +1428,7 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
         onCancel={() => {
           setShowSuccessModal(false);
           resetPayment();
-          navigate('/bookings/list');
+          navigate('/list');
         }}
         cancelText="View My Bookings"
         details={details}
@@ -1471,7 +1471,7 @@ ${method?.recipientBank ? `🏛️ *Bank:* ${method?.recipientBank}` : ''}
               <h1 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Make Payment</h1>
             </div>
             <button
-              onClick={() => navigate('/payment-history')}
+              onClick={() => navigate('/payments')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs sm:text-sm transition-colors"
             >
               <Clock className="w-4 h-4" />
