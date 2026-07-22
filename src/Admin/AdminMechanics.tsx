@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'https://autofix.pythonanywhere.com/api';
 const API_ENDPOINT = `${API_BASE_URL}/service-requests/`;
 
 // Types

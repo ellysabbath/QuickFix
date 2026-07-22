@@ -12,7 +12,7 @@ export default defineConfig({
     port: 3000, // Your frontend will run on port 3000
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: 'https://autofix.pythonanywhere.com',
         changeOrigin: true,
         secure: false,
       },

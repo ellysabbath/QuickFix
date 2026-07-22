@@ -2,7 +2,7 @@
 
 export const API_CONFIG = {
   // Django Backend URL - Update this for your environment
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/',
+  BASE_URL: import.meta.env.VITE_API_URL || 'https://autofix.pythonanywhere.com/api/',
   TIMEOUT: 30000, // 30 seconds (reduced from 30000000 which was too high)
   
   ENDPOINTS: {

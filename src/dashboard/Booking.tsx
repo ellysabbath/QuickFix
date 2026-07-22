@@ -74,7 +74,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 const VEHICLE_YEARS = Array.from({ length: CURRENT_YEAR - 1899 }, (_, i) => (CURRENT_YEAR - i).toString());
 
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'https://autofix.pythonanywhere.com/api';
 
 // Types
 interface FormData {

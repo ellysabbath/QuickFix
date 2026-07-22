@@ -94,7 +94,7 @@ interface RepairService {
   service_created: string;
 }
 
-const REPAIR_SERVICES_URL = 'http://127.0.0.1:8000/api/repair-services/';
+const REPAIR_SERVICES_URL = 'https://autofix.pythonanywhere.com/api/repair-services/';
 
 // Service images mapping
 const serviceImages = {

@@ -6,7 +6,7 @@ import loginApi from '../lib/api/loginApi';
 import profileApi from '../lib/api/profileApi';
 
 // API Configuration for members endpoint
-const MEMBERS_API_URL = 'http://127.0.0.1:8000/api/members';
+const MEMBERS_API_URL = 'https://autofix.pythonanywhere.com/api/members';
 
 // Extended UserProfile with role and role_display
 interface ExtendedUserProfile extends UserProfile {

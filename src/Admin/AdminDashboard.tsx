@@ -59,7 +59,7 @@ interface StatsData {
 // API CONFIGURATION
 // ============================================================================
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api/members';
+const API_BASE_URL = 'https://autofix.pythonanywhere.com/api/members';
 
 // ============================================================================
 // CONFIRMATION MODAL COMPONENT

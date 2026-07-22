@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'https://autofix.pythonanywhere.com/api';
 const PUBLIC_REQUESTS_URL = `${API_BASE_URL}/public-requests/`;
 const PAYMENT_RECORDS_URL = `${API_BASE_URL}/pay/payment-records/me`;
 

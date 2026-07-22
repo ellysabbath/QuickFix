@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // Django backend URL
+  baseURL: 'https://autofix.pythonanywhere.com', // Django backend URL
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
