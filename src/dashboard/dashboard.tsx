@@ -85,6 +85,7 @@ import wadtybjc from '../../assets/new/wadtybjc.jpg';
 import xvwszbpu from '../../assets/new/xvwszbpu.jpg';
 import zobakwpt from '../../assets/new/zobakwpt.jpg';
 import zweagvxl from '../../assets/new/zweagvxl.jpg';
+import { useNavigate } from 'react-router-dom';
 
 // Type definitions for Repair Service API
 interface RepairService {
@@ -157,6 +158,7 @@ const serviceImages = {
 const allServiceImages = Object.values(serviceImages);
 
 export default function ServicesPage() {
+  const navigate = useNavigate();
   const { user, profileData, logout } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [services, setServices] = useState<RepairService[]>([]);
@@ -290,7 +292,7 @@ export default function ServicesPage() {
       setShowProfileDropdown(false);
       setShowSidebar(false);
       await logout();
-      window.location.href = '/login';
+      navigate('/login');
     }
   }, [logout]);
 
@@ -440,7 +442,7 @@ export default function ServicesPage() {
             className="w-full flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors group"
             onClick={() => {
               setShowProfileDropdown(false);
-              window.location.href = '/profile';
+              navigate('/profile'); // ← CHANGED
             }}
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-cyan-100 group-hover:bg-cyan-200 flex items-center justify-center mr-3 transition-colors flex-shrink-0">
@@ -457,7 +459,7 @@ export default function ServicesPage() {
             className="w-full flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors group"
             onClick={() => {
               setShowProfileDropdown(false);
-              window.location.href = '/list';
+              navigate('/list'); // ← CHANGED
             }}
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center mr-3 transition-colors flex-shrink-0">
@@ -491,7 +493,7 @@ export default function ServicesPage() {
             className="w-full flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors group"
             onClick={() => {
               setShowProfileDropdown(false);
-              window.location.href = '/settings';
+              navigate('/settings'); // ← CHANGED
             }}
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center mr-3 transition-colors flex-shrink-0">
