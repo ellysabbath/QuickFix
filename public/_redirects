@@ -1,0 +1,142 @@
+# ============================================================
+# REACT ROUTER - SPA ROUTING
+# ============================================================
+# This is the most important rule - it tells Netlify to serve
+# index.html for all routes so React Router can handle them
+/*  /index.html  200
+
+# ============================================================
+# WWW TO NON-WWW REDIRECT (SEO Best Practice)
+# ============================================================
+# Redirect all www traffic to non-www (garagenea.com)
+https://www.garagenea.com/*  https://garagenea.com/:splat  301!
+http://www.garagenea.com/*   https://garagenea.com/:splat  301!
+
+# ============================================================
+# HTTP TO HTTPS REDIRECT (Security & SEO)
+# ============================================================
+# Force all HTTP traffic to HTTPS
+http://garagenea.com/*  https://garagenea.com/:splat  301!
+
+# ============================================================
+# TRAILING SLASH HANDLING (SEO & UX)
+# ============================================================
+# Remove trailing slashes for cleaner URLs
+# Example: /dashboard/ → /dashboard
+/*/  /:splat  301!
+
+# ============================================================
+# SPECIFIC PAGE REDIRECTS (301 Permanent)
+# ============================================================
+# Use these if you rename or move pages
+
+# Example: If you rename 'list' to 'mechanics'
+# /list  /mechanics  301!
+
+# Example: If you move 'my-location' to 'find-mechanics'
+# /my-location  /find-mechanics  301!
+
+# Example: Redirect old 'requests' to 'service-requests'
+# /requests  /service-requests  301!
+
+# ============================================================
+# PROXY / API ROUTES (If you use external APIs)
+# ============================================================
+# Uncomment and modify if you need to proxy API requests
+# /api/*  https://your-backend-api.com/:splat  200
+
+# ============================================================
+# ASSET CACHING & PERFORMANCE
+# ============================================================
+# Cache static assets for better performance
+# These files won't trigger the SPA fallback
+
+# Images and media
+/assets/*  /assets/:splat  200
+/images/*  /images/:splat  200
+/fonts/*   /fonts/:splat   200
+
+# ============================================================
+# SECURITY HEADERS (Optional - Advanced)
+# ============================================================
+# Add security headers to protect your site
+# Uncomment if needed
+
+# / *  # Add security headers
+#   X-Content-Type-Options: "nosniff"
+#   X-Frame-Options: "DENY"
+#   X-XSS-Protection: "1; mode=block"
+#   Referrer-Policy: "strict-origin-when-cross-origin"
+
+# ============================================================
+# CLEAN URLS FOR DYNAMIC PAGES (SEO Friendly)
+# ============================================================
+# If you have dynamic pages with IDs, you can make them cleaner
+# Example: /garage/123 → /garage/123 (already clean)
+# If you use query params, you can redirect
+
+# Example: /garage?id=123 → /garage/123
+# /garage  /garage/:id  301!  (requires code changes)
+
+# ============================================================
+# 404 ERROR PAGE (Optional)
+# ============================================================
+# If you have a custom 404 page, uncomment this
+# /404  /404.html  200
+
+# ============================================================
+# ROBOTS AND SITEMAP ROUTES
+# ============================================================
+# Ensure these files are always accessible
+/robots.txt  /robots.txt  200
+/sitemap.xml /sitemap.xml 200
+
+# ============================================================
+# ADMIN & PRIVATE ROUTES PROTECTION (Optional)
+# ============================================================
+# You can add authentication checks here with Netlify Identity
+# Uncomment if you use Netlify Identity
+
+# /admin/*  /admin/index.html  200  # Requires login
+# /mechanic/*  /mechanic/index.html  200  # Requires login
+
+# ============================================================
+# DEPLOY PREVIEWS (Optional - For Branch Deployments)
+# ============================================================
+# If you use Netlify Deploy Previews, this helps maintain routing
+# /deploy-preview/*  /index.html  200
+
+# ============================================================
+# SOCIAL MEDIA SHARING (Open Graph)
+# ============================================================
+# Ensure social media bots can access your site properly
+# User-agent: *  (handled in robots.txt)
+
+# ============================================================
+# CANONICAL URL HANDLING
+# ============================================================
+# Force canonical URLs to prevent duplicate content
+# This is handled in your React code with the useSEO hook
+
+# ============================================================
+# REDIRECT LEGACY URLS (For SEO Preservation)
+# ============================================================
+# If you migrate from an old site or rename pages, use these
+# Example: Old: /services, New: /garages
+# /services  /garages  301!
+
+# Example: Old: /about-us, New: /contacts
+# /about-us  /contacts  301!
+
+# ============================================================
+# TRAILING SLASH - ALTERNATIVE (If you prefer WITH slashes)
+# ============================================================
+# If you prefer URLs WITH trailing slashes, use this instead
+# (Comment out the trailing slash removal above)
+# /  /:splat/  301!
+
+# ============================================================
+# COUNTRY-SPECIFIC REDIRECTS (Optional - For localization)
+# ============================================================
+# If you want to redirect users based on their country
+# /  https://garagenea.com/  # Uses GeoIP (Netlify handles this)
