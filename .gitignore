@@ -1,721 +1,721 @@
-# Dependencies
-/node_modules
-/.pnp
-.pnp.js
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
-# Testing
-/coverage
-/.nyc_output
-*.lcov
-
-# Production
-/build
-/dist
-/.next
-/out
-/public/build
-*.tsbuildinfo
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
-
-# IDE
-/.vscode
-/.idea
-/.vs
-*.swp
-*.swo
-*~
-.DS_Store
-.idea/
-.vscode/
-*.iml
-.project
-.classpath
-.settings/
-*.sublime-*
-*.code-workspace
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Desktop.ini
-
-# Misc
-*.pem
-*.p12
-*.pfx
-*.crt
-*.key
-*.csr
-*.der
-*.cer
-*.p7b
-*.p7c
-
-# Temporary files
-*.tmp
-*.temp
-*.cache
-*.swp
-*.swo
-*~
-
-# Dependency directories
-node_modules/
-jspm_packages/
-bower_components/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Optional stylelint cache
-.stylelintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variable files
-.env*.local
-
-# Vite
-.vite
-vite.config.*.timestamp-*
-
-# TypeScript
-*.tsbuildinfo
-
-# Local Netlify folder
-.netlify
-
-# Next.js
-/.next/
-/out/
-
-# Nuxt.js
-/.nuxt/
-/dist/
-
-# Gatsby
-/.cache/
-/public/
-
-# Storybook
-/storybook-static
-
-# Firebase
-.firebase/
-
-# AWS
-.aws/
-
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-
-# Docker
-*.pid
-docker-compose.override.yml
-
-# Sentry
-.sentryclirc
-.sentry/
-
-# CRA
-/build
-/coverage
-
-# Turborepo
-.turbo
-
-# Editor directories and files
-.vercel
-*.sw?
-~$*
-*~
-
-# App specific - Large files
-*.zip
-*.rar
-*.tar.gz
-*.7z
-*.iso
-*.dmg
-*.exe
-*.msi
-*.apk
-*.ipa
-*.deb
-*.rpm
-*.app
-
-# Media files (optional - comment out if you need to track images)
-# *.jpg
-# *.jpeg
-# *.png
-# *.gif
-# *.svg
-# *.mp4
-# *.mov
-# *.mp3
-# *.wav
-
-# Documentation
-/docs/_build
-/docs/_site
-/docs/.doctrees
-docs/*.log
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Backup files
-*.bak
-*.backup
-*.old
-*.orig
-
-# Python (if any)
-*.pyc
-__pycache__/
-*.py[co]
-*$py.class
-
-# Java (if any)
-*.class
-*.jar
-*.war
-*.ear
-
-# PHP (if any)
-composer.phar
-/vendor/
-
-# Ruby (if any)
-*.gem
-*.rbc
-/.bundle
-/vendor/bundle
-
-# PHPUnit
-.phpunit.result.cache
-/.phpunit.cache
-
-# Laravel
-/.env
-/.env.*.local
-/.phpunit.cache
-/storage/*.key
-/storage/*.key
-/storage/logs/*.log
-/storage/framework/*
-
-# WordPress
-/wp-content/uploads/
-/wp-content/cache/
-/wp-content/plugins/
-/wp-content/themes/
-/wp-content/upgrade/
-/wp-content/backup-*
-
-# Android (if any)
-*.apk
-*.dex
-*.class
-*.dex
-/gen/
-/bin/
-/build/
-/.gradle/
-/local.properties
-
-# iOS (if any)
-*.xcodeproj
-*.xcworkspace
-*.xcuserstate
-*.xcuserdatad
-/Pods/
-/DerivedData/
-*.app
-*.dSYM
-
-# Xcode
-build/
-*.pbxuser
-*.mode1v3
-*.mode2v3
-*.perspectivev3
-xcuserdata/
-*.xccheckout
-*.moved-aside
-DerivedData
-*.hmap
-*.ipa
-*.xcuserstate
-
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
-
-# Visual Studio
-*.user
-*.userosscache
-*.vs
-*.sln.docstates
-
-# IntelliJ IDEA
-.idea/
-*.iws
-*.iml
-*.ipr
-/out/
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-
-# Vim
-*.swp
-*.swo
-*.un~
-Session.vim
-.netrwhist
-
-# Sublime Text
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
-*.sublime-workspace
-*.sublime-project
-
-# Atom
-.atom/
-.nuclide/
-*.log
-
-# Brackets
-*.brackets
-
-# NetBeans
-/nbproject/
-/nbdist/
-/nbactions.xml
-
-# ESLint
-.eslintcache
-
-# StyleLint
-.stylelintcache
-
-# Prettier
-.prettiercache
-
-# Docker
-docker-compose.override.yml
-Dockerfile
-.dockerignore
-
-# Kubernetes
-*.kubeconfig
-*.kubeconfig.*
-*.kubeconfig-*
-kubeconfig
-
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform.lock.hcl
-
-# Ansible
-*.retry
-ansible.cfg
-
-# Jenkins
-.jenkins
-
-# Git
-*.orig
-*.rej
-*.patch
-*.diff
-*.merge
-*.MERGE_*
-*.BACKUP_*
-*.BASE_*
-*.REMOTE_*
-*.LOCAL_*
-*.gitattributes
-*.gitignore
-
-# NPM
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Bower
-bower_components/
-
-
-
-# Storybook
-storybook-static/
-docs/
-
-# Playwright
-/playwright-report/
-/test-results/
-
-# Cypress
-/cypress/videos/
-/cypress/screenshots/
-/cypress/downloads/
-/cypress/fixtures/
-/cypress/integration/
-/cypress/plugins/
-/cypress/support/
-
-# Puppeteer
-/test/.tmp/
-/test/.cache/
-/test/screenshots/
-
-# Jest
-/jest-results/
-/jest-coverage/
-
-# Mocha
-/mocha-results/
-
-# Istanbul
-/.nyc_output/
-
-# Webpack
-/webpack-stats/
-
-# Parcel
-/.parcel-cache/
-
-# Rollup
-/.rollup.cache/
-
-# TypeDoc
-/typedoc/
-
-# JSDoc
-/out/
-
-# Sphinx
-/_build/
-/_static/
-/_templates/
-
-# MkDocs
-/site/
-
-# Docusaurus
-/.docusaurus/
-/build/
-
-# VuePress
-/.vuepress/dist/
-/.vuepress/.cache/
-
-# Gridsome
-/.cache/
-/dist/
-
-# Saber
-/.saber/
-
-# Gatsby
-/.cache/
-/public/
-
-# Next.js
-/.next/
-/out/
-
-# Nuxt.js
-/.nuxt/
-/dist/
-
-# SvelteKit
-/.svelte-kit/
-/build/
-
-# Remix
-/build/
-/.cache/
-
-# Expo
-/.expo/
-/dist/
-/web-build/
-
-# React Native
-/android/
-/ios/
-/Pods/
-*.jks
-*.keystore
-*.p8
-*.p12
-*.mobileprovision
-*.xcodeproj
-*.xcworkspace
-*.xcuserstate
-*.xcuserdatad
-
-# Flutter
-/.flutter-plugins
-/.flutter-plugins-dependencies
-/.metadata
-/.packages
-/build/
-/ios/Pods/
-/ios/.symlinks/
-/ios/Flutter/App.framework
-/ios/Flutter/Flutter.framework
-/ios/Flutter/Flutter.podspec
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/app.flx
-/ios/Flutter/app.zip
-/ios/Flutter/flutter_assets/
-/ios/ServiceDefinitions.json
-/ios/Runner/GeneratedPluginRegistrant.*
-/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.kt
-/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.kt
-/android/app/src/main/res/drawable/launch_background.xml
-
-# Capacitor
-/android/
-/ios/
-/www/
-
-# Cordova
-/platforms/
-/plugins/
-/www/
-
-# Ionic
-/resources/
-/www/
-
-# NativeScript
-/hooks/
-/platforms/
-/node_modules/
-
-# Electron
-/dist/
-/out/
-/release/
-
-# Tauri
-/src-tauri/target/
-/src-tauri/tauri.conf.json
-
-# Wails
-/build/
-/bin/
-
-# Go
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-/vendor/
-/go.sum
-
-# Rust
-/target/
-/Cargo.lock
-
-# C++
-*.exe
-*.out
-*.app
-*.o
-*.obj
-*.pdb
-*.ilk
-*.exp
-*.lib
-*.dll
-*.so
-*.dylib
-*.a
-*.dSYM
-.vscode/
-.idea/
-cmake-build-*/
-build/
-CMakeLists.txt
-*.user
-*.sln
-*.vcxproj
-*.vcxproj.filters
-
-# C#
-/bin/
-/obj/
-/packages/
-*.user
-*.suo
-*.cache
-*.pidb
-*.userprefs
-*.sln.ide
-*.csproj.user
-*.vspscc
-*.vssscc
-*._vs
-*.vssettings
-*.vsintegration
-*.vsz
-*.vstemplate
-*.vsmdi
-*.testsettings
-*.vsmdi
-*.testrunconfig
-*.vsmdi
-*.sln.ide
-
-# Unity
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
-*.csproj
-*.unityproj
-*.sln
-*.userprefs
-*.pidb
-*.booproj
-*.svd
-*.pdb
-*.mdb
-*.opendb
-*.VC.db
-*.VC.VC.opendb
-*.dbproj.sln
-*.sln.ide
-*.sln.dotsettings
-*.sln.ide
-*.unitypackage
-*.apk
-*.aab
-*.exe
-*.unity
-
-# Unreal Engine
-/Binaries/
-/Intermediate/
-/Saved/
-/DerivedDataCache/
-/Build/
-*.sln
-*.suo
-*.opensdf
-*.sdf
-*.VC.db
-*.VC.VC.opendb
-*.user
-*.v12.suo
-*.v11.suo
-*.xcodeproj
-*.xcworkspace
-*.xcuserstate
-*.xcuserdatad
-*.csproj
-*.unityproj
-*.sln.ide
-*.sln.dotsettings
-
-# Godot
-/.import/
-/export_presets.cfg
-/.godot/
-/*.pck
-/*.apk
-/*.aab
-/*.exe
-/*.dmg
-/*.zip
-
-# GameMaker
-/Assets/*.yydebug
-/Assets/*.yyp
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmx
-/Assets/*.project.gmxn o d e _ m o d u l e s 
- 
- 
+# # Dependencies
+# /node_modules
+# /.pnp
+# .pnp.js
+# .pnp.*
+# .yarn/*
+# !.yarn/patches
+# !.yarn/plugins
+# !.yarn/releases
+# !.yarn/sdks
+# !.yarn/versions
+
+# # Testing
+# /coverage
+# /.nyc_output
+# *.lcov
+
+# # Production
+# /build
+# /dist
+# /.next
+# /out
+# /public/build
+# *.tsbuildinfo
+
+# # Environment variables
+# .env
+# .env.local
+# .env.development.local
+# .env.test.local
+# .env.production.local
+# .env.*.local
+
+# # IDE
+# /.vscode
+# /.idea
+# /.vs
+# *.swp
+# *.swo
+# *~
+# .DS_Store
+# .idea/
+# .vscode/
+# *.iml
+# .project
+# .classpath
+# .settings/
+# *.sublime-*
+# *.code-workspace
+
+# # Logs
+# logs
+# *.log
+# npm-debug.log*
+# yarn-debug.log*
+# yarn-error.log*
+# pnpm-debug.log*
+# lerna-debug.log*
+
+# # OS files
+# .DS_Store
+# .DS_Store?
+# ._*
+# .Spotlight-V100
+# .Trashes
+# ehthumbs.db
+# Thumbs.db
+# Desktop.ini
+
+# # Misc
+# *.pem
+# *.p12
+# *.pfx
+# *.crt
+# *.key
+# *.csr
+# *.der
+# *.cer
+# *.p7b
+# *.p7c
+
+# # Temporary files
+# *.tmp
+# *.temp
+# *.cache
+# *.swp
+# *.swo
+# *~
+
+# # Dependency directories
+# node_modules/
+# jspm_packages/
+# bower_components/
+
+# # Optional npm cache directory
+# .npm
+
+# # Optional eslint cache
+# .eslintcache
+
+# # Optional stylelint cache
+# .stylelintcache
+
+# # Microbundle cache
+# .rpt2_cache/
+# .rts2_cache_cjs/
+# .rts2_cache_es/
+# .rts2_cache_umd/
+
+# # Optional REPL history
+# .node_repl_history
+
+# # Output of 'npm pack'
+# *.tgz
+
+# # Yarn Integrity file
+# .yarn-integrity
+
+# # dotenv environment variable files
+# .env*.local
+
+# # Vite
+# .vite
+# vite.config.*.timestamp-*
+
+# # TypeScript
+# *.tsbuildinfo
+
+# # Local Netlify folder
+# .netlify
+
+# # Next.js
+# /.next/
+# /out/
+
+# # Nuxt.js
+# /.nuxt/
+# /dist/
+
+# # Gatsby
+# /.cache/
+# /public/
+
+# # Storybook
+# /storybook-static
+
+# # Firebase
+# .firebase/
+
+# # AWS
+# .aws/
+
+# # Terraform
+# *.tfstate
+# *.tfstate.*
+# .terraform/
+
+# # Docker
+# *.pid
+# docker-compose.override.yml
+
+# # Sentry
+# .sentryclirc
+# .sentry/
+
+# # CRA
+# /build
+# /coverage
+
+# # Turborepo
+# .turbo
+
+# # Editor directories and files
+# .vercel
+# *.sw?
+# ~$*
+# *~
+
+# # App specific - Large files
+# *.zip
+# *.rar
+# *.tar.gz
+# *.7z
+# *.iso
+# *.dmg
+# *.exe
+# *.msi
+# *.apk
+# *.ipa
+# *.deb
+# *.rpm
+# *.app
+
+# # Media files (optional - comment out if you need to track images)
+# # *.jpg
+# # *.jpeg
+# # *.png
+# # *.gif
+# # *.svg
+# # *.mp4
+# # *.mov
+# # *.mp3
+# # *.wav
+
+# # Documentation
+# /docs/_build
+# /docs/_site
+# /docs/.doctrees
+# docs/*.log
+
+# # Database files
+# *.db
+# *.sqlite
+# *.sqlite3
+
+# # Backup files
+# *.bak
+# *.backup
+# *.old
+# *.orig
+
+# # Python (if any)
+# *.pyc
+# __pycache__/
+# *.py[co]
+# *$py.class
+
+# # Java (if any)
+# *.class
+# *.jar
+# *.war
+# *.ear
+
+# # PHP (if any)
+# composer.phar
+# /vendor/
+
+# # Ruby (if any)
+# *.gem
+# *.rbc
+# /.bundle
+# /vendor/bundle
+
+# # PHPUnit
+# .phpunit.result.cache
+# /.phpunit.cache
+
+# # Laravel
+# /.env
+# /.env.*.local
+# /.phpunit.cache
+# /storage/*.key
+# /storage/*.key
+# /storage/logs/*.log
+# /storage/framework/*
+
+# # WordPress
+# /wp-content/uploads/
+# /wp-content/cache/
+# /wp-content/plugins/
+# /wp-content/themes/
+# /wp-content/upgrade/
+# /wp-content/backup-*
+
+# # Android (if any)
+# *.apk
+# *.dex
+# *.class
+# *.dex
+# /gen/
+# /bin/
+# /build/
+# /.gradle/
+# /local.properties
+
+# # iOS (if any)
+# *.xcodeproj
+# *.xcworkspace
+# *.xcuserstate
+# *.xcuserdatad
+# /Pods/
+# /DerivedData/
+# *.app
+# *.dSYM
+
+# # Xcode
+# build/
+# *.pbxuser
+# *.mode1v3
+# *.mode2v3
+# *.perspectivev3
+# xcuserdata/
+# *.xccheckout
+# *.moved-aside
+# DerivedData
+# *.hmap
+# *.ipa
+# *.xcuserstate
+
+# # Visual Studio Code
+# .vscode/*
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
+# !.vscode/*.code-snippets
+
+# # Visual Studio
+# *.user
+# *.userosscache
+# *.vs
+# *.sln.docstates
+
+# # IntelliJ IDEA
+# .idea/
+# *.iws
+# *.iml
+# *.ipr
+# /out/
+
+# # Emacs
+# *~
+# \#*\#
+# /.emacs.desktop
+# /.emacs.desktop.lock
+# *.elc
+# auto-save-list
+# tramp
+# .\#*
+
+# # Vim
+# *.swp
+# *.swo
+# *.un~
+# Session.vim
+# .netrwhist
+
+# # Sublime Text
+# *.tmlanguage.cache
+# *.tmPreferences.cache
+# *.stTheme.cache
+# *.sublime-workspace
+# *.sublime-project
+
+# # Atom
+# .atom/
+# .nuclide/
+# *.log
+
+# # Brackets
+# *.brackets
+
+# # NetBeans
+# /nbproject/
+# /nbdist/
+# /nbactions.xml
+
+# # ESLint
+# .eslintcache
+
+# # StyleLint
+# .stylelintcache
+
+# # Prettier
+# .prettiercache
+
+# # Docker
+# docker-compose.override.yml
+# Dockerfile
+# .dockerignore
+
+# # Kubernetes
+# *.kubeconfig
+# *.kubeconfig.*
+# *.kubeconfig-*
+# kubeconfig
+
+# # Terraform
+# *.tfstate
+# *.tfstate.*
+# .terraform.lock.hcl
+
+# # Ansible
+# *.retry
+# ansible.cfg
+
+# # Jenkins
+# .jenkins
+
+# # Git
+# *.orig
+# *.rej
+# *.patch
+# *.diff
+# *.merge
+# *.MERGE_*
+# *.BACKUP_*
+# *.BASE_*
+# *.REMOTE_*
+# *.LOCAL_*
+# *.gitattributes
+# *.gitignore
+
+# # NPM
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# # Bower
+# bower_components/
+
+
+
+# # Storybook
+# storybook-static/
+# docs/
+
+# # Playwright
+# /playwright-report/
+# /test-results/
+
+# # Cypress
+# /cypress/videos/
+# /cypress/screenshots/
+# /cypress/downloads/
+# /cypress/fixtures/
+# /cypress/integration/
+# /cypress/plugins/
+# /cypress/support/
+
+# # Puppeteer
+# /test/.tmp/
+# /test/.cache/
+# /test/screenshots/
+
+# # Jest
+# /jest-results/
+# /jest-coverage/
+
+# # Mocha
+# /mocha-results/
+
+# # Istanbul
+# /.nyc_output/
+
+# # Webpack
+# /webpack-stats/
+
+# # Parcel
+# /.parcel-cache/
+
+# # Rollup
+# /.rollup.cache/
+
+# # TypeDoc
+# /typedoc/
+
+# # JSDoc
+# /out/
+
+# # Sphinx
+# /_build/
+# /_static/
+# /_templates/
+
+# # MkDocs
+# /site/
+
+# # Docusaurus
+# /.docusaurus/
+# /build/
+
+# # VuePress
+# /.vuepress/dist/
+# /.vuepress/.cache/
+
+# # Gridsome
+# /.cache/
+# /dist/
+
+# # Saber
+# /.saber/
+
+# # Gatsby
+# /.cache/
+# /public/
+
+# # Next.js
+# /.next/
+# /out/
+
+# # Nuxt.js
+# /.nuxt/
+# /dist/
+
+# # SvelteKit
+# /.svelte-kit/
+# /build/
+
+# # Remix
+# /build/
+# /.cache/
+
+# # Expo
+# /.expo/
+# /dist/
+# /web-build/
+
+# # React Native
+# /android/
+# /ios/
+# /Pods/
+# *.jks
+# *.keystore
+# *.p8
+# *.p12
+# *.mobileprovision
+# *.xcodeproj
+# *.xcworkspace
+# *.xcuserstate
+# *.xcuserdatad
+
+# # Flutter
+# /.flutter-plugins
+# /.flutter-plugins-dependencies
+# /.metadata
+# /.packages
+# /build/
+# /ios/Pods/
+# /ios/.symlinks/
+# /ios/Flutter/App.framework
+# /ios/Flutter/Flutter.framework
+# /ios/Flutter/Flutter.podspec
+# /ios/Flutter/Generated.xcconfig
+# /ios/Flutter/app.flx
+# /ios/Flutter/app.zip
+# /ios/Flutter/flutter_assets/
+# /ios/ServiceDefinitions.json
+# /ios/Runner/GeneratedPluginRegistrant.*
+# /android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+# /android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.kt
+# /android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.kt
+# /android/app/src/main/res/drawable/launch_background.xml
+
+# # Capacitor
+# /android/
+# /ios/
+# /www/
+
+# # Cordova
+# /platforms/
+# /plugins/
+# /www/
+
+# # Ionic
+# /resources/
+# /www/
+
+# # NativeScript
+# /hooks/
+# /platforms/
+# /node_modules/
+
+# # Electron
+# /dist/
+# /out/
+# /release/
+
+# # Tauri
+# /src-tauri/target/
+# /src-tauri/tauri.conf.json
+
+# # Wails
+# /build/
+# /bin/
+
+# # Go
+# *.exe
+# *.exe~
+# *.dll
+# *.so
+# *.dylib
+# *.test
+# *.out
+# /vendor/
+# /go.sum
+
+# # Rust
+# /target/
+# /Cargo.lock
+
+# # C++
+# *.exe
+# *.out
+# *.app
+# *.o
+# *.obj
+# *.pdb
+# *.ilk
+# *.exp
+# *.lib
+# *.dll
+# *.so
+# *.dylib
+# *.a
+# *.dSYM
+# .vscode/
+# .idea/
+# cmake-build-*/
+# build/
+# CMakeLists.txt
+# *.user
+# *.sln
+# *.vcxproj
+# *.vcxproj.filters
+
+# # C#
+# /bin/
+# /obj/
+# /packages/
+# *.user
+# *.suo
+# *.cache
+# *.pidb
+# *.userprefs
+# *.sln.ide
+# *.csproj.user
+# *.vspscc
+# *.vssscc
+# *._vs
+# *.vssettings
+# *.vsintegration
+# *.vsz
+# *.vstemplate
+# *.vsmdi
+# *.testsettings
+# *.vsmdi
+# *.testrunconfig
+# *.vsmdi
+# *.sln.ide
+
+# # Unity
+# /[Ll]ibrary/
+# /[Tt]emp/
+# /[Oo]bj/
+# /[Bb]uild/
+# /[Bb]uilds/
+# /[Ll]ogs/
+# /[Uu]ser[Ss]ettings/
+# *.csproj
+# *.unityproj
+# *.sln
+# *.userprefs
+# *.pidb
+# *.booproj
+# *.svd
+# *.pdb
+# *.mdb
+# *.opendb
+# *.VC.db
+# *.VC.VC.opendb
+# *.dbproj.sln
+# *.sln.ide
+# *.sln.dotsettings
+# *.sln.ide
+# *.unitypackage
+# *.apk
+# *.aab
+# *.exe
+# *.unity
+
+# # Unreal Engine
+# /Binaries/
+# /Intermediate/
+# /Saved/
+# /DerivedDataCache/
+# /Build/
+# *.sln
+# *.suo
+# *.opensdf
+# *.sdf
+# *.VC.db
+# *.VC.VC.opendb
+# *.user
+# *.v12.suo
+# *.v11.suo
+# *.xcodeproj
+# *.xcworkspace
+# *.xcuserstate
+# *.xcuserdatad
+# *.csproj
+# *.unityproj
+# *.sln.ide
+# *.sln.dotsettings
+
+# # Godot
+# /.import/
+# /export_presets.cfg
+# /.godot/
+# /*.pck
+# /*.apk
+# /*.aab
+# /*.exe
+# /*.dmg
+# /*.zip
+
+# # GameMaker
+# /Assets/*.yydebug
+# /Assets/*.yyp
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmx
+# /Assets/*.project.gmxn o d e _ m o d u l e s 
+#  
+#  
