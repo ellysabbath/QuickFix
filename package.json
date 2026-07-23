@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     
-    "build": "npx vite build",
+    "build": "npx vite build && xcopy /Y public\\index.html dist\\",
     "lint": "eslint .",
     "preview": "vite preview"
   },
