@@ -25,7 +25,7 @@ const WelcomeScreen: React.FC = () => {
   // SEO IMPLEMENTATION - Add this at the top
   // ============================================
   useSEO({
-    title: 'Fundi Fasta - Find Trusted Mechanics & Garages Near You in Africa',
+    title: 'FUNDI FASTA, HII  THIS IS A PROGRAM  TO GET  MOTOR VEHICLE SOLUTIONS ANY WHERE, GET CONNECTED WITH US, DONT BOTHER  WITH FINDING PHYSICAL GARAGE,  VISIT WEBSITE, SHARE YOUR DETAILS AND LOCATION, THEN DELIGHT YOURSELF',
     description: 'Connect with verified mechanics and garages. Book car repairs, maintenance, and emergency vehicle services instantly. Save 20% on your first service!',
     keywords: 'mechanic, garage, car repair, auto repair, vehicle service, roadside assistance, fundi fasta, quickfix automotive',
     image: 'https://garagenea.com/logo.png',
