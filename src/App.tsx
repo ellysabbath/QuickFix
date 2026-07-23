@@ -1,15 +1,14 @@
-// App.tsx - With UserProvider for authentication context
-
+// App.tsx
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { UserProvider } from './context/UserContext';
+import { useSEO } from './hooks/useSEO';
 
 // Public Pages
 import Home from './pages/Home';
 import Registration from './pages/Registration';
 import Login from './pages/Login';
 import Index from './pages/verify_otp/Index';
-
 
 // Dashboard Pages
 import Dashboard from './dashboard/dashboard';
@@ -35,6 +34,11 @@ import SettingsPage from './dashboard/Settings';
 import HelpPage from './dashboard/Help';
 import WhoFixed from './Admin/WhoFixed';
 
+// SEO Component that watches route changes
+function SEOUpdater() {
+  useSEO();
+  return null;
+}
 
 // ============================================================
 // MAIN APP COMPONENT
@@ -45,6 +49,7 @@ function App() {
     <UserProvider>
       <Router>
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+          <SEOUpdater /> {/* Add this component to handle SEO */}
           <Routes>
             {/* Public Routes */}
             <Route
@@ -91,11 +96,7 @@ function App() {
               }
             />
 
-
-
-
-
-          <Route
+            <Route
               path="/admin/services"
               element={
                 <>
@@ -106,10 +107,7 @@ function App() {
               }
             />
 
-
-
-
-                      <Route
+            <Route
               path="/who-fixed"
               element={
                 <>
@@ -120,9 +118,7 @@ function App() {
               }
             />
 
-
-
-          <Route
+            <Route
               path="/requests"
               element={
                 <>
@@ -132,10 +128,6 @@ function App() {
                 </>
               }
             />
-
-
-
-
 
             <Route
               path="/myrequest"
@@ -148,13 +140,7 @@ function App() {
               }
             />
 
-
-
-
-
-
-
-                        <Route
+            <Route
               path="/map"
               element={
                 <>
@@ -299,8 +285,6 @@ function App() {
               }
             />
 
-
-
             <Route
               path="/contacts"
               element={
@@ -312,11 +296,7 @@ function App() {
               }
             />
 
-
-
-
-
-          <Route
+            <Route
               path="/settings"
               element={
                 <>
@@ -327,11 +307,7 @@ function App() {
               }
             />
 
-
-
-
-
-          <Route
+            <Route
               path="/help"
               element={
                 <>
@@ -341,8 +317,6 @@ function App() {
                 </>
               }
             />
-
-
 
             <Route
               path="/admin/bookings"

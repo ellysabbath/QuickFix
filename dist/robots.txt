@@ -1,0 +1,9 @@
+
+Allow: /
+Disallow: /admin/
+Disallow: /mechanic/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /settings/
+
+Sitemap: https://garagenea.com/sitemap.xml
