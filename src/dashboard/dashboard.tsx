@@ -305,13 +305,13 @@ export default function ServicesPage() {
       case 'services':
         break;
       case 'bookings':
-        window.location.href = '/list';
+        navigate('/list'); // ← CHANGED
         break;
       case 'map':
-        window.location.href = '/map';
+        navigate('/map'); // ← CHANGED
         break;
       case 'profile':
-        window.location.href = '/profile';
+        navigate('/profile'); // ← CHANGED
         break;
     }
   }, []);
@@ -319,7 +319,7 @@ export default function ServicesPage() {
   // Navigate to create booking
   const handleCreateBooking = useCallback(() => {
     setShowProfileDropdown(false);
-    window.location.href = '/bookings';
+    navigate('/bookings'); // ← CHANGED
   }, []);
 
   // Memoized filtered services
