@@ -33,6 +33,7 @@ import AdminServices from './Admin/AdminServices';
 import MyRequests from './dashboard/MyRequest';
 import SettingsPage from './dashboard/Settings';
 import HelpPage from './dashboard/Help';
+import WhoFixed from './Admin/WhoFixed';
 
 
 // ============================================================
@@ -104,6 +105,21 @@ function App() {
                 </>
               }
             />
+
+
+
+
+                      <Route
+              path="/who-fixed"
+              element={
+                <>
+                  <main className="flex-grow">
+                    <WhoFixed />
+                  </main>
+                </>
+              }
+            />
+
 
 
           <Route

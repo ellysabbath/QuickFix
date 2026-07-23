@@ -15,7 +15,6 @@ import {
   Server,
   Bookmark,
   MapPin,
-  
   UserPlus,
   Phone,
   Settings,
@@ -30,6 +29,7 @@ import {
   RefreshCw,
   Sparkles,
   Crown,
+  UserCheck
 } from 'lucide-react';
 
 // Types
@@ -334,6 +334,15 @@ export default function Sidebar({ isVisible, onClose }: SidebarProps) {
       roles: ['admin'],
     },
     {
+      id: 'who_fixed',
+      title: 'Who Fixed',
+      icon: <UserCheck className="w-4 h-4" />,
+      route: '/who-fixed',
+      roles: ['admin'],
+      badge: 'FIX',
+      badgeColor: '#c62525',
+    },
+    {
       id: 'admin_garages',
       title: 'Manage Providers',
       icon: <Building2 className="w-4 h-4" />,
@@ -381,7 +390,7 @@ export default function Sidebar({ isVisible, onClose }: SidebarProps) {
       id: 'contact',
       title: 'Contact',
       icon: <Phone className="w-4 h-4" />,
-      route: '/contacts',
+      route: '/contact',
       roles: ['customer', 'mechanic', 'garage_owner', 'admin'],
     },
     {
@@ -434,7 +443,7 @@ export default function Sidebar({ isVisible, onClose }: SidebarProps) {
     {
       title: 'ADMIN',
       icon: <Shield className="w-2.5 h-2.5" />,
-      items: menuItems.filter(item => item.id.startsWith('admin_')),
+      items: menuItems.filter(item => item.id.startsWith('admin_') || item.id === 'who_fixed'),
     },
     {
       title: 'INFO',
