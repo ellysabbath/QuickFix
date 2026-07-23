@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 // API Configuration
-const APPROVE_API_URL = 'https://autofix.pythonanywhere.com/api/approve/';
+const APPROVE_API_URL = 'https://autofix.pythonanywhere.com/api/approvals/';
 
 // Types
 interface ApproveRecord {
