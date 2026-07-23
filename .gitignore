@@ -191,16 +191,6 @@
 # *.rpm
 # *.app
 
-# # Media files (optional - comment out if you need to track images)
-# # *.jpg
-# # *.jpeg
-# # *.png
-# # *.gif
-# # *.svg
-# # *.mp4
-# # *.mov
-# # *.mp3
-# # *.wav
 
 # # Documentation
 # /docs/_build
@@ -716,6 +706,6 @@
 # /Assets/*.project.gmx
 # /Assets/*.project.gmx
 # /Assets/*.project.gmx
-# /Assets/*.project.gmxn o d e _ m o d u l e s 
-#  
-#  
+# 
+# 
+# 
