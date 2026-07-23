@@ -16,66 +16,13 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Eye,
   AlertTriangle,
   CheckCircle,
   Loader2,
   RefreshCw,
   Info,
-  Check,
-  XCircle,
-  MessageSquare,
-  Shield,
-  Award,
-  Building2,
-  Smartphone,
-  Mail,
-  MapPin,
-  Briefcase,
-  TrendingUp,
-  BarChart3,
-  Activity,
-  Zap,
-  Star,
-  ThumbsUp,
-  Heart,
-  Sparkles,
-  Crown,
-  BadgeCheck,
-  UserCheck,
-  UserX,
-  Users,
-  Calendar as CalendarIcon,
-  Clock as ClockIcon,
-  FileCheck,
-  FileX,
-  Send,
-  Copy,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
-  MoreVertical,
-  Settings,
-  LogOut,
-  Home,
-  Menu,
-  User as UserIcon,
-  PhoneCall,
-  MailOpen,
-  Globe,
-  Link,
-  Share2,
-  Bookmark,
-  Flag,
-  EyeOff,
   Lock,
-  Unlock,
-  Power,
-  PowerOff,
   Save,
-  Download,
-  Upload,
-  Filter
 } from 'lucide-react';
 
 // API Configuration
@@ -217,7 +164,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
 export default function ApproveManagement() {
   const navigate = useNavigate();
-  const { token, isAuthenticated } = useUser();
+  const { isAuthenticated } = useUser();
   const [showSidebar, setShowSidebar] = useState(false);
 
   // State
@@ -351,14 +298,30 @@ export default function ApproveManagement() {
     window.location.href = `tel:${cleanedNumber}`;
   };
 
+  // Get auth token from localStorage
+  const getAuthToken = (): string | null => {
+    try {
+      return localStorage.getItem('access_token');
+    } catch {
+      return null;
+    }
+  };
+
   // API Calls
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
-      if (!isAuthenticated || !token) {
+      if (!isAuthenticated) {
         showConfirmationModal('error', 'Error', 'Please login to view records');
         return;
       }
+      
+      const token = getAuthToken();
+      if (!token) {
+        showConfirmationModal('error', 'Error', 'Authentication token not found');
+        return;
+      }
+
       const response = await fetch(APPROVE_API_URL, {
         method: 'GET',
         headers: {
@@ -366,11 +329,14 @@ export default function ApproveManagement() {
           'Content-Type': 'application/json',
         },
       });
+      
       if (response.status === 401) {
         showConfirmationModal('error', 'Error', 'Session expired. Please login again.');
         return;
       }
+      
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
       const data = await response.json();
       setRecords(data);
       setFilteredRecords(data);
@@ -381,14 +347,17 @@ export default function ApproveManagement() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated]);
 
   const createRecord = async () => {
     if (!createForm.updated_by || !createForm.phone_number || !createForm.request_code) {
       showConfirmationModal('error', 'Error', 'Please fill required fields');
       return;
     }
+    
     setIsSubmitting(true);
+    const token = getAuthToken();
+    
     try {
       const response = await fetch(APPROVE_API_URL, {
         method: 'POST',
@@ -406,10 +375,12 @@ export default function ApproveManagement() {
           notes: createForm.notes || null,
         }),
       });
+      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Create failed');
       }
+      
       await fetchRecords();
       setShowCreateModal(false);
       setCreateForm({
@@ -432,7 +403,10 @@ export default function ApproveManagement() {
 
   const updateRecord = async () => {
     if (!selectedRecord) return;
+    
     setIsSubmitting(true);
+    const token = getAuthToken();
+    
     try {
       const response = await fetch(`${APPROVE_API_URL}${selectedRecord.id}/`, {
         method: 'PUT',
@@ -450,7 +424,9 @@ export default function ApproveManagement() {
           notes: editForm.notes || null,
         }),
       });
+      
       if (!response.ok) throw new Error('Update failed');
+      
       await fetchRecords();
       setShowEditModal(false);
       setSelectedRecord(null);
@@ -465,7 +441,10 @@ export default function ApproveManagement() {
 
   const deleteRecord = async () => {
     if (!selectedRecord) return;
+    
     setIsSubmitting(true);
+    const token = getAuthToken();
+    
     try {
       const response = await fetch(`${APPROVE_API_URL}${selectedRecord.id}/`, {
         method: 'DELETE',
@@ -473,7 +452,9 @@ export default function ApproveManagement() {
           'Authorization': `Bearer ${token}`,
         },
       });
+      
       if (!response.ok) throw new Error('Delete failed');
+      
       await fetchRecords();
       setSelectedRecord(null);
       setShowModal(false);
